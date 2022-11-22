@@ -1,14 +1,14 @@
-//
-// Created by eeuri on 13.11.2022.
-//
+#include <utility>
 
-#include "plane.h"
+#include "../include/plane.h"
 #include "opencv2/opencv.hpp"
 
 namespace models {
-    plane::plane(const cv::Vec3d& planeCoordinates, double width, double length) : models() {
+    plane::plane(const cv::Vec3d& planeCoordinates, double newWidth, double newLength) : models() {
         move(planeCoordinates);
-        changeWidthAndLength(width, length);
+        width = newWidth;
+        length = newLength;
+        initializateLocalPoints();
     }
 
     void plane::changeWidthAndLength(double newWidth, double newLength) {
@@ -43,11 +43,11 @@ namespace models {
         }
     }
 
-    [[maybe_unused]] std::vector<models*> plane::mergePlanes(plane *plane1) {
+    [[maybe_unused]] std::vector<std::shared_ptr<plane>> plane::mergePlanes(const std::shared_ptr<plane>& plane1) {
         /*
             Проверка на равенство углов
         */
-        std::vector<models*> models;
+        std::vector<std::shared_ptr<plane>> models;
         models.emplace_back(this);
         plane* tempPlane = this;
         // Тут на xAxis, но можно легко обобщить
@@ -74,30 +74,52 @@ namespace models {
         return models;
     }
 
-    [[maybe_unused]] double plane::getWidth() const {
+    double plane::getWidth() const {
         return width;
     }
 
-    [[maybe_unused]] double plane::getLength() const {
+    double plane::getLength() const {
         return length;
     }
 
+    std::vector<std::shared_ptr<plane>> plane::createCrossRoad(const std::shared_ptr<plane>& plane1){
+        auto vec = imposeRoad(plane1, 2, CV_PI/ 90);
+        auto lastPlane = vec[vec.size() - 1];
+        auto firstPlane = vec[0];
+        lastPlane->rotate(-CV_PI, zAxis);
+        auto newVector = lastPlane->imposeRoad(firstPlane, 8, CV_PI/90);
+        vec[vec.size() - 1]->rotate(CV_PI, zAxis);
+        auto index = vec.size() - 1;
+        vec.insert( vec.end(), newVector.begin(), newVector.end() );/*
+        lastPlane = vec[vec.size() - 1];
+        firstPlane = vec[index];
+        firstPlane->rotate(CV_PI, zAxis);
+        lastPlane->rotate(CV_PI, zAxis);
+        newVector = lastPlane->imposeRoad(firstPlane, 2);
+        index = vec.size() - 1;
+        vec.insert( vec.end(), newVector.begin(), newVector.end() );
+        lastPlane = vec[vec.size() - 1];
+        firstPlane = vec[index];*/
+        return vec;
+    }
+
     // ----------------------Копипаст верхней функции
-    [[maybe_unused]] std::vector<models*> plane::imposeRoad(plane* plane1) {
-        std::vector<models*> models;
+    [[maybe_unused]] std::vector<std::shared_ptr<plane>> plane::imposeRoad(const std::shared_ptr<plane>& plane1, double len, double angle) {
+        std::vector<std::shared_ptr<plane>> models;
         models.emplace_back(this);
         plane* tempPlane = this;
         while (tempPlane->coordinateSystem->getAngle(zAxis) < plane1->coordinateSystem->getAngle(zAxis))
         {
+            auto kik = plane1->coordinateSystem->getAngle(zAxis);
             auto q = tempPlane->coordinateSystem->getAngle(zAxis);
             auto lol = tempPlane->coordinateSystem->getCoordinatesOfCenter();
-            double len = 2;
             auto y = tempPlane->length/ 2;
             auto ef = tempPlane->coordinateSystem->moveToGlobalCoordinates(cv::Vec3d(0, y, 0));
+            std::cout<<ef;
             auto* newPlane = new plane(cv::Vec3d(ef), tempPlane->width, len);
             newPlane->rotate(tempPlane->coordinateSystem->getAngle(xAxis), xAxis);
 
-            q += CV_PI / 90;
+            q += angle;
             newPlane->rotate(q, zAxis);
             models.emplace_back(newPlane);
             tempPlane = newPlane;
@@ -112,5 +134,4 @@ namespace models {
         models.emplace_back(ef);
         return models;
     }
-
-} // models
+}

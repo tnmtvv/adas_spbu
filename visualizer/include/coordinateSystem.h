@@ -1,7 +1,3 @@
-//
-// Created by eeuri on 13.11.2022.
-//
-
 #ifndef UNTITLED_COORDINATESYSTEM_H
 #define UNTITLED_COORDINATESYSTEM_H
 
@@ -19,7 +15,6 @@ namespace coordinateSystem {
         cv::Mat coordinatesOfCenterOfCoordinateSystem;
         cv::Mat rotationMatrix;
         cv::Mat generateRotationMatrix(double angle, Axis axis);
-        static void initializateMatrix(int i, int j, double value, cv::Mat &matrix);
         double xAngle;
         double yAngle;
         double zAngle;
@@ -32,7 +27,9 @@ namespace coordinateSystem {
         cv::Mat moveToLocalCoordinates(const cv::Vec3d& coordinates);
         [[nodiscard]] double getAngle(Axis axis) const;
         cv::Mat getCoordinatesOfCenter();
-        void setCoordinatesOfCenter(cv::Vec3d vector);
+        void setCoordinatesOfCenter(const cv::Vec3d& vector);
+        cv::Mat getRotationMatrix();
     };
 }
-#endif //UNTITLED_COORDINATESYSTEM_H
+
+#endif

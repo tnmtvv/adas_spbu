@@ -1,4 +1,4 @@
-#include "models.h"
+#include "../include/models.h"
 
 namespace models {
 
@@ -34,7 +34,7 @@ namespace models {
 
     models::models() {
         // Создание системы координат для модели
-        coordinateSystem = new coordinateSystem::coordinateSystem();
+        coordinateSystem = std::make_shared<coordinateSystem::coordinateSystem>();
     }
 
     // Получение точек в локальной системе координат каждого объекта
@@ -63,4 +63,7 @@ namespace models {
         return this->coordinateSystem->getCoordinatesOfCenter();
     }
 
-} // Models
+    std::shared_ptr<coordinateSystem::coordinateSystem> models::getCoordinateSystem() {
+        return coordinateSystem;
+    }
+}

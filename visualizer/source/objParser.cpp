@@ -1,21 +1,11 @@
-//
-// Created by eeuri on 15.11.2022.
-//
-
-#include "objParser.h"
-#include <fstream>
-#include <string>
-#include <vector>
-#include <opencv2/opencv.hpp>
-#include "models.h"
+#include "../include/objParser.h"
 
 namespace objParser {
 
-    [[maybe_unused]] models::models* objParser::parse(const std::string& pathToFile) {
-
+    std::shared_ptr<models::models> objParser::parse(const std::string& pathToFile) {
         std::ifstream infile(pathToFile);
         std::string line;
-        auto* model = new models::models();
+        auto model = std::make_shared<models::models>();
         while (std::getline(infile, line))
         {
             // пока не умею работать с нормалями к вершинам
@@ -43,6 +33,7 @@ namespace objParser {
                         kek.emplace_back(n - 1);
                     }
                 }
+
                 model->setIndexes(kek);
             }
         }
@@ -50,7 +41,7 @@ namespace objParser {
         return model;
     }
 
-    [[maybe_unused]] void objParser::write(std::vector<models::models*> models, const std::string& pathToFile) {
+    void objParser::write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile) {
         std::ofstream infile(pathToFile);
         int t = 0;
         unsigned long l = 0;
@@ -61,6 +52,7 @@ namespace objParser {
                 infile << "v " << globalPoint.x << " " << globalPoint.y << " " << globalPoint.z
                        << std::endl;
             }
+
             auto polygons = model->getIndexes();
             for (auto & polygon : polygons) {
                 infile << "f";
@@ -69,11 +61,10 @@ namespace objParser {
                 }
                 infile << std::endl;
             }
+
             l += globalPoints.size();
             t++;
         }
         infile.close();
     }
-
-
-} // objParser
+}

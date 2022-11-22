@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 23)
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-add_executable(${PROJECT_NAME} main.cpp coordinateSystem.cpp coordinateSystem.h models.cpp models.h camera.cpp camera.h plane.cpp plane.h cube.cpp cube.h vertex.cpp vertex.h objParser.cpp objParser.h main.cpp)
+add_executable(${PROJECT_NAME} source/coordinateSystem.cpp source/models.cpp source/camera.cpp source/plane.cpp
+        source/cube.cpp source/objParser.cpp source/main.cpp)
+set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER include/coordinateSystem.h include/models.h
+        include/camera.h include/plane.h include/cube.h include/vertex.h include/objParser.h )
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})

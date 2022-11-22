@@ -1,21 +1,17 @@
-//
-// Created by eeuri on 14.11.2022.
-//
-
-#include "cube.h"
+#include "../include/cube.h"
 
 namespace models {
-    [[maybe_unused]] cube::cube(const cv::Vec3d& planeCoordinates, double width, double length, double height): models() {
+    cube::cube(const cv::Vec3d& planeCoordinates, double width, double length, double height): models() {
         this->move(planeCoordinates);
         cv::Point3d firstPoint(width / 2, length / 2, height / 2);
-        auto secondPoint = cv::Point3d(width / 2, -length / 2, height / 2);
-        auto thirdPoint = cv::Point3d(width / 2, length / 2, -height / 2);
-        auto fourthPoint = cv::Point3d(width / 2, -length / 2, -height / 2);
+        cv::Point3d secondPoint(width / 2, -length / 2, height / 2);
+        cv::Point3d thirdPoint(width / 2, length / 2, -height / 2);
+        cv::Point3d fourthPoint(width / 2, -length / 2, -height / 2);
 
-        auto fifthPoint = cv::Point3d (-width/2, length / 2, height / 2);
-        auto sixthPoint = cv::Point3d (-width/2, -length / 2, height / 2);
-        auto seventhPoint = cv::Point3d (-width/2, length / 2, -height / 2);
-        auto eightPoint = cv::Point3d (-width/2, -length / 2, -height / 2);
+        cv::Point3d fifthPoint(-width/2, length / 2, height / 2);
+        cv::Point3d sixthPoint(-width/2, -length / 2, height / 2);
+        cv::Point3d seventhPoint(-width/2, length / 2, -height / 2);
+        cv::Point3d eightPoint(-width/2, -length / 2, -height / 2);
 
         this->localPoints.emplace_back(firstPoint);
         this->localPoints.emplace_back(secondPoint);
@@ -41,4 +37,4 @@ namespace models {
             globalPoints.emplace_back(coordinateSystem->moveToGlobalCoordinates(localPoint));
         }
     }
-} // models
+}

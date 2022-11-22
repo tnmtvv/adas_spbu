@@ -1,7 +1,4 @@
-//
-// Created by eeuri on 13.11.2022.
-//
-#include "coordinateSystem.h"
+#include "../include/coordinateSystem.h"
 
 namespace coordinateSystem {
 
@@ -18,38 +15,28 @@ namespace coordinateSystem {
         switch(axis){
             case xAxis:{
                 xAngle += angle;
-                initializateMatrix(0, 0, 1, matrix);
-                initializateMatrix(1, 1, cos(angle), matrix);
-                initializateMatrix(1, 2, -sin(angle), matrix);
-                initializateMatrix(2, 1, sin(angle), matrix);
-                initializateMatrix(2, 2, cos(angle), matrix);
-                break;
+                double data[3][3] = {{1 ,0 , 0},
+                                     {0, cos(angle), -sin(angle)},
+                                     {0, sin(angle), cos(angle)}};
+                return {3, 3, CV_64FC1, data};
             }
             case yAxis:{
                 yAngle += angle;
-                initializateMatrix(0, 0, cos(angle), matrix);
-                initializateMatrix(0, 2, sin(angle), matrix);
-                initializateMatrix(1, 1, 1, matrix);
-                initializateMatrix(2, 0, -sin(angle), matrix);
-                initializateMatrix(2, 2, cos(angle), matrix);
-                break;
+                double data[3][3] = {{cos(angle) ,0 , sin(angle)},
+                                     {0, 1, 0},
+                                     {-sin(angle), 0, cos(angle)}};
+                return {3, 3, CV_64FC1, data};
             }
             case zAxis:{
                 zAngle += angle;
-                initializateMatrix(0, 0, cos(angle), matrix);
-                initializateMatrix(0, 1, -sin(angle), matrix);
-                initializateMatrix(1, 0, sin(angle), matrix);
-                initializateMatrix(1, 1, cos(angle), matrix);
-                initializateMatrix(2, 2, 1, matrix);
-                break;
+                double data[3][3] = {{cos(angle) ,-sin(angle) , 0},
+                                     {sin(angle), cos(angle), 0},
+                                     {0, 0, 1}};
+                return {3, 3, CV_64FC1, data};
             }
         }
 
-        return matrix;
-    }
-
-    void coordinateSystem::initializateMatrix(int i, int j, double value, cv::Mat &matrix) {
-        matrix.at<double>(i, j) = value;
+        return {3, 3, CV_64FC1, cv::Scalar(0)};
     }
 
     cv::Mat coordinateSystem::moveToGlobalCoordinates(const cv::Vec3d& coordinates) {
@@ -88,9 +75,11 @@ namespace coordinateSystem {
         return coordinatesOfCenterOfCoordinateSystem;
     }
 
-    void coordinateSystem::setCoordinatesOfCenter(cv::Vec3d vector) {
-        coordinatesOfCenterOfCoordinateSystem.at<double>(0, 0) = vector[0];
-        coordinatesOfCenterOfCoordinateSystem.at<double>(1, 0) = vector[1];
-        coordinatesOfCenterOfCoordinateSystem.at<double>(2, 0) = vector[2];
+    void coordinateSystem::setCoordinatesOfCenter(const cv::Vec3d& vector) {
+        coordinatesOfCenterOfCoordinateSystem = cv::Mat(vector);
     }
-} // coordinateSystem
+
+    cv::Mat coordinateSystem::getRotationMatrix() {
+        return rotationMatrix;
+    }
+}
