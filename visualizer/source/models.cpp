@@ -38,7 +38,7 @@ namespace models {
     }
 
     // Получение точек в локальной системе координат каждого объекта
-    std::vector<cv::Point3d>& models::getLocalPoints() {
+    [[maybe_unused]] std::vector<cv::Point3d>& models::getLocalPoints() {
         return localPoints;
     }
 

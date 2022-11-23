@@ -9,10 +9,11 @@
 #include <opencv2/opencv.hpp>
 
 namespace objParser {
-    class objParser {
+    class [[maybe_unused]] objParser {
     public:
-        static std::shared_ptr<models::models> parse(const std::string& pathToFile);
-        static void write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile);
+        [[maybe_unused]] static std::shared_ptr<models::models> parse(const std::string& pathToFile);
+
+        [[maybe_unused]] static void write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile);
     };
 }
 

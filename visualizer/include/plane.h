@@ -4,7 +4,7 @@
 #include "models.h"
 
 namespace models {
-    class plane : public models{
+    class [[maybe_unused]] plane : public models{
     private:
         double width;
         double length;
@@ -14,20 +14,15 @@ namespace models {
         plane(const cv::Vec3d& planeCoordinates, double width, double length);
 
         // Поменять длину и ширину плоскости
-        void changeWidthAndLength(double width, double length);
+        [[maybe_unused]] void changeWidthAndLength(double width, double length);
 
         // Соеденить плоскости
-        std::vector<std::shared_ptr<plane>> mergePlanes(Axis axis, double maxAngle, double stepLength, double stepAngle);
+        [[maybe_unused]] std::vector<std::shared_ptr<plane>> mergePlanes(Axis axis, double maxAngle, double stepLength, double stepAngle);
 
         // Получить длину и ширину
-        [[nodiscard]] double getWidth() const;
+        [[maybe_unused]] [[nodiscard]] double getWidth() const;
 
-        [[nodiscard]] double getLength() const;
-
-        // Генерация плавного поворота
-        std::vector<std::shared_ptr<plane>> imposeRoad(const std::shared_ptr<plane>& plane, double len, double angle);
-
-        std::vector<std::shared_ptr<plane>> createCrossRoad(const std::shared_ptr<plane>& plane1);
+        [[maybe_unused]] [[nodiscard]] double getLength() const;
     };
 }
 

@@ -1,7 +1,9 @@
 #include "../include/cube.h"
 
 namespace models {
-    cube::cube(const cv::Vec3d& planeCoordinates, double width, double length, double height): models() {
+
+    // бесполезный для построения дороги класс, используется для проверки работы поворотов и сдвигов моделей
+    [[maybe_unused]] cube::cube(const cv::Vec3d& planeCoordinates, double width, double length, double height): models() {
         this->move(planeCoordinates);
 
         this->localPoints.emplace_back(width / 2, length / 2, height / 2);

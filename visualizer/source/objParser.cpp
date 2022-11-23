@@ -2,13 +2,13 @@
 
 namespace objParser {
 
-    std::shared_ptr<models::models> objParser::parse(const std::string& pathToFile) {
+    [[maybe_unused]] std::shared_ptr<models::models> objParser::parse(const std::string& pathToFile) {
         std::ifstream infile(pathToFile);
         std::string line;
         auto model = std::make_shared<models::models>();
         while (std::getline(infile, line))
         {
-            // пока не умею работать с нормалями к вершинам
+            // не умею работать с нормалями к вершинам
             auto substring = line.substr(0,2);
             if (substring == "v "){
                 std::istringstream coordinates(line.substr(2));
@@ -42,7 +42,7 @@ namespace objParser {
         return model;
     }
 
-    void objParser::write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile) {
+    [[maybe_unused]] void objParser::write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile) {
         std::ofstream infile(pathToFile);
         int t = 0;
         unsigned long l = 0;

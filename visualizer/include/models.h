@@ -24,7 +24,8 @@ namespace models {
         void rotate(double angle, Axis axis);
         std::vector<cv::Point3d>& getGlobalPoints();
         void addGlobalPoints(const cv::Vec3d& vec);
-        std::vector<cv::Point3d>& getLocalPoints();
+
+        [[maybe_unused]] std::vector<cv::Point3d>& getLocalPoints();
         void setIndexes(const std::vector<int>& vector);
         std::vector<std::vector<int>> getIndexes();
         cv::Vec3d getCoordinatesOfCenter();

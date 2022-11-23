@@ -3,12 +3,15 @@
 
 namespace models {
 
-    camera::camera(cv::Mat internalCameraParameters) : models() {
+    [[maybe_unused]] camera::camera(cv::Mat internalCameraParameters) : models() {
         this->internalCameraParameters = std::move(internalCameraParameters);
         this->cameraPlane = cv::Mat (1080, 1920, CV_8UC1, cv::Scalar(0));
     }
 
-    void camera::displayModelPoints(const std::shared_ptr<models>& models) {
+    [[maybe_unused]] void camera::displayModelPoints(const std::shared_ptr<models>& models) {
+
+        // Знаю, что максимально неэффективно, вместо проверки на то что точка сзади камеры, буду отправлять
+        // в эту функцию нужные точки
         std::vector<cv::Point2d> imagePoints;
         cv::Mat distCoeffs(5, 1, CV_64FC1, cv::Scalar(0));
         std::vector<int> globalPoints;
@@ -51,16 +54,16 @@ namespace models {
         }
     }
 
-    void camera::clear()
+    [[maybe_unused]] void camera::clear()
     {
         cameraPlane = cv::Scalar(0);
     }
 
-    cv::Mat camera::getCameraPlane() {
+    [[maybe_unused]] cv::Mat camera::getCameraPlane() {
         return cameraPlane;
     }
 
-    void camera::moveAroundTheCircle(float angle) {
+    [[maybe_unused]] void camera::moveAroundTheCircle(float angle) {
         auto coordinates = this->getCoordinatesOfCenter();
         auto rad = coordinates[0] * coordinates[0] + coordinates[1]*coordinates[1] + coordinates[2]*coordinates[2];
         auto tsquare = sqrt(2*rad*(1 - cos(angle)));

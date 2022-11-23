@@ -4,9 +4,9 @@
 #include "models.h"
 
 namespace models {
-    class cube : public models {
+    class [[maybe_unused]] cube : public models {
     public:
-        cube(const cv::Vec3d& planeCoordinates, double width, double length, double height);
+        [[maybe_unused]] cube(const cv::Vec3d& planeCoordinates, double width, double length, double height);
     };
 }
 

@@ -4,21 +4,23 @@
 #include "models.h"
 
 namespace models {
-    class camera: public models {
+    class [[maybe_unused]] camera: public models {
     private:
         cv::Mat cameraPlane;
         cv::Mat internalCameraParameters;
         std::vector<std::shared_ptr<models>> model;
     public:
 
-        explicit camera(cv::Mat internalCameraParameters);
+        [[maybe_unused]] explicit camera(cv::Mat internalCameraParameters);
 
         // Функция для проеции точек моделей на плоскость камеры
-        void displayModelPoints(const std::shared_ptr<models>& models);
+        [[maybe_unused]] void displayModelPoints(const std::shared_ptr<models>& models);
 
-        cv::Mat getCameraPlane();
-        void moveAroundTheCircle(float angle);
-        void clear();
+        [[maybe_unused]] cv::Mat getCameraPlane();
+
+        [[maybe_unused]] void moveAroundTheCircle(float angle);
+
+        [[maybe_unused]] void clear();
     };
 }
 

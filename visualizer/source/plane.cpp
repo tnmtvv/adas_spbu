@@ -1,5 +1,3 @@
-#include <utility>
-
 #include "../include/plane.h"
 #include "opencv2/opencv.hpp"
 
@@ -11,7 +9,7 @@ namespace models {
         initializateLocalPoints();
     }
 
-    void plane::changeWidthAndLength(double newWidth, double newLength) {
+    [[maybe_unused]] void plane::changeWidthAndLength(double newWidth, double newLength) {
         width = newWidth;
         length = newLength;
         initializateLocalPoints();
@@ -38,7 +36,7 @@ namespace models {
         }
     }
 
-    std::vector<std::shared_ptr<plane>> plane::mergePlanes(Axis axis, double maxAngle, double stepLength,
+    [[maybe_unused]] std::vector<std::shared_ptr<plane>> plane::mergePlanes(Axis axis, double maxAngle, double stepLength,
                                                            double stepAngle)
     {
         std::vector<std::shared_ptr<plane>> planes;
@@ -61,11 +59,11 @@ namespace models {
         return planes;
     }
 
-    double plane::getWidth() const {
+    [[maybe_unused]] double plane::getWidth() const {
         return width;
     }
 
-    double plane::getLength() const {
+    [[maybe_unused]] double plane::getLength() const {
         return length;
     }
 
@@ -78,7 +76,7 @@ namespace models {
         auto newVector = lastPlane->imposeRoad(firstPlane, 8, CV_PI/90);
         vec[vec.size() - 1]->rotate(CV_PI, zAxis);
         auto index = vec.size() - 1;
-        vec.insert( vec.end(), newVector.begin(), newVector.end() );/*
+        vec.insert( vec.end(), newVector.begin(), newVector.end() );
         lastPlane = vec[vec.size() - 1];
         firstPlane = vec[index];
         firstPlane->rotate(CV_PI, zAxis);
