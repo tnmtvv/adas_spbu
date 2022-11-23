@@ -23,5 +23,3 @@ namespace models {
 }
 
 #endif
-
-#endif //VISUALIZER_CAMERA_H

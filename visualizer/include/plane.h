@@ -17,7 +17,7 @@ namespace models {
         void changeWidthAndLength(double width, double length);
 
         // Соеденить плоскости
-        std::vector<std::shared_ptr<plane>> mergePlanes(const std::shared_ptr<plane>& plane1);
+        std::vector<std::shared_ptr<plane>> mergePlanes(Axis axis, double maxAngle, double stepLength, double stepAngle);
 
         // Получить длину и ширину
         [[nodiscard]] double getWidth() const;

@@ -43,35 +43,27 @@ namespace models {
         }
     }
 
-    [[maybe_unused]] std::vector<std::shared_ptr<plane>> plane::mergePlanes(const std::shared_ptr<plane>& plane1) {
-        /*
-            Проверка на равенство углов
-        */
-        std::vector<std::shared_ptr<plane>> models;
-        models.emplace_back(this);
-        plane* tempPlane = this;
-        // Тут на xAxis, но можно легко обобщить
-        while (tempPlane->coordinateSystem->getAngle(xAxis) > plane1->coordinateSystem->getAngle(xAxis))
-        {
-            auto angle = tempPlane->coordinateSystem->getAngle(xAxis);
-            auto lol = tempPlane->coordinateSystem->getCoordinatesOfCenter();
+    std::vector<std::shared_ptr<plane>> plane::mergePlanes(Axis axis, double maxAngle, double stepLength,
+                                                           double stepAngle)
+    {
+        std::vector<std::shared_ptr<plane>> planes;
+        planes.emplace_back(this);
+        std::shared_ptr<plane> tempPlane = std::make_shared<plane>(this->getCoordinatesOfCenter(),
+                                                                   this->width, this->length);
 
-            // шаг по длине и углу можно принимать как аргумент
-            double len = 2;
-            auto y = tempPlane->length/ 2 + len / 2;
-            auto nextPlane = tempPlane->coordinateSystem->moveToGlobalCoordinates(cv::Vec3d(0, y, 0));
-            auto* newPlane = new plane(cv::Vec3d(nextPlane), tempPlane->width, len);
-            angle -= CV_PI / 90;
-            newPlane->rotate(angle, xAxis);
-            models.emplace_back(newPlane);
-            tempPlane = newPlane;
+        while (tempPlane->coordinateSystem->getAngle(axis) < maxAngle)
+        {
+            auto coordinatesOfCenterForNextPlane = tempPlane->coordinateSystem->
+                    moveToGlobalCoordinates(cv::Vec3d(0, tempPlane->length/ 2 + stepLength / 2, 0));
+            std::shared_ptr<plane> nextPlane = std::make_shared<plane>
+                    (cv::Vec3d(coordinatesOfCenterForNextPlane),
+                     tempPlane->width, stepLength);
+            nextPlane->rotate(tempPlane->coordinateSystem->getAngle(axis) + stepAngle, axis);
+            planes.emplace_back(nextPlane);
+            tempPlane = nextPlane;
         }
-        auto i = tempPlane->length/ 2 + plane1->length / 2;
-        auto dots = tempPlane->coordinateSystem->moveToGlobalCoordinates(cv::Vec3d(0, i, 0));
-        auto nextPlane = new plane(dots, tempPlane->width, plane1->length);
-        nextPlane->rotate(plane1->coordinateSystem->getAngle(xAxis), xAxis);
-        models.emplace_back(nextPlane);
-        return models;
+
+        return planes;
     }
 
     double plane::getWidth() const {
@@ -82,6 +74,7 @@ namespace models {
         return length;
     }
 
+    /*
     std::vector<std::shared_ptr<plane>> plane::createCrossRoad(const std::shared_ptr<plane>& plane1){
         auto vec = imposeRoad(plane1, 2, CV_PI/ 90);
         auto lastPlane = vec[vec.size() - 1];
@@ -99,7 +92,7 @@ namespace models {
         index = vec.size() - 1;
         vec.insert( vec.end(), newVector.begin(), newVector.end() );
         lastPlane = vec[vec.size() - 1];
-        firstPlane = vec[index];*/
+        firstPlane = vec[index];
         return vec;
     }
 
@@ -133,5 +126,5 @@ namespace models {
 
         models.emplace_back(ef);
         return models;
-    }
+    } */
 }
