@@ -9,14 +9,15 @@ namespace objParser {
         while (std::getline(infile, line))
         {
             // пока не умею работать с нормалями к вершинам
-            if (line.substr(0,2)=="v "){
+            auto substring = line.substr(0,2);
+            if (substring == "v "){
                 std::istringstream coordinates(line.substr(2));
                 double firstCoordinates, secondCoordinates, thirdCoordinates;
                 coordinates>>firstCoordinates>>secondCoordinates>>thirdCoordinates;
                 cv::Vec3d lol(firstCoordinates, secondCoordinates, thirdCoordinates);
                 model->addGlobalPoints(lol);
             }
-            else if(line.substr(0,2)=="f ") {
+            else if(substring == "f " || substring == "l ") {
                 std::istringstream v(line.substr(1));
                 std::string token;
                 std::vector<int> kek;

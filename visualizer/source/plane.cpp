@@ -18,19 +18,14 @@ namespace models {
     }
 
     void plane::initializateLocalPoints() {
-        cv::Point3d firstPoint(width / 2, length / 2, 0);
-        cv::Point3d secondPoint(width / 2, -length / 2, 0);
-        cv::Point3d thirdPoint(-width / 2, length / 2, 0);
-        cv::Point3d fourthPoint(-width / 2, -length / 2, 0);
-
         localPoints.clear();
         globalPoints.clear();
 
         // Добавляем координаты
-        this->localPoints.emplace_back(firstPoint);
-        this->localPoints.emplace_back(secondPoint);
-        this->localPoints.emplace_back(thirdPoint);
-        this->localPoints.emplace_back(fourthPoint);
+        this->localPoints.emplace_back(width / 2, length / 2, 0);
+        this->localPoints.emplace_back(width / 2, -length / 2, 0);
+        this->localPoints.emplace_back(-width / 2, length / 2, 0);
+        this->localPoints.emplace_back(-width / 2, -length / 2, 0);
 
         // Вершины нужных нам полигонов
         indexes.emplace_back(std::vector<int>{0, 1, 2});

@@ -1,5 +1,6 @@
 #ifndef VISUALIZER_CUBE_H
 #define VISUALIZER_CUBE_H
+
 #include "models.h"
 
 namespace models {
