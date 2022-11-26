@@ -1,11 +1,11 @@
 #include "../include/objParser.h"
 
-namespace objParser {
+namespace models {
 
-    [[maybe_unused]] std::shared_ptr<models::models> objParser::parse(const std::string& pathToFile) {
+    [[maybe_unused]] std::shared_ptr<models> objParser::parse(const std::string& pathToFile) {
         std::ifstream infile(pathToFile);
         std::string line;
-        auto model = std::make_shared<models::models>();
+        auto model = std::make_shared<models>();
         while (std::getline(infile, line))
         {
             // не умею работать с нормалями к вершинам
@@ -13,36 +13,36 @@ namespace objParser {
             if (substring == "v "){
                 std::istringstream coordinates(line.substr(2));
                 double firstCoordinates, secondCoordinates, thirdCoordinates;
-                coordinates>>firstCoordinates>>secondCoordinates>>thirdCoordinates;
-                cv::Vec3d lol(firstCoordinates, secondCoordinates, thirdCoordinates);
-                model->addGlobalPoints(lol);
+                coordinates >> firstCoordinates >> secondCoordinates >> thirdCoordinates;
+                cv::Vec3d vectorOfCoordinates(firstCoordinates, secondCoordinates, thirdCoordinates);
+                model->addGlobalPoints(vectorOfCoordinates);
             }
             else if(substring == "f " || substring == "l ") {
-                std::istringstream v(line.substr(1));
+                std::istringstream curveIndexesStream(line.substr(1));
                 std::string token;
-                std::vector<int> kek;
-                while(std::getline(v, token, ' '))
+                std::vector<int> indexes;
+                while(std::getline(curveIndexesStream, token, ' '))
                 {
-                    v >> token;
+                    curveIndexesStream >> token;
                     std::istringstream tokenStream(token);
-                    std::string a;
-                    if (std::getline(tokenStream, a, '/'))
+                    std::string index;
+                    if (std::getline(tokenStream, index, '/'))
                     {
-                        int n;
-                        std::istringstream aStream(a);
-                        aStream>>n;
-                        kek.emplace_back(n - 1);
+                        int pointIndex;
+                        std::istringstream pointIndexStream(index);
+                        pointIndexStream>>pointIndex;
+                        indexes.emplace_back(pointIndex - 1);
                     }
                 }
 
-                model->setIndexes(kek);
+                model->indexes.emplace_back(indexes);
             }
         }
         infile.close();
         return model;
     }
 
-    [[maybe_unused]] void objParser::write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile) {
+    [[maybe_unused]] void objParser::write(const std::vector<std::shared_ptr<models>>& models, const std::string& pathToFile) {
         std::ofstream infile(pathToFile);
         int t = 0;
         unsigned long l = 0;

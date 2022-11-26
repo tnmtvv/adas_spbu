@@ -23,6 +23,8 @@ namespace models {
         [[maybe_unused]] [[nodiscard]] double getWidth() const;
 
         [[maybe_unused]] [[nodiscard]] double getLength() const;
+
+        virtual void addBorders() = 0;
     };
 }
 

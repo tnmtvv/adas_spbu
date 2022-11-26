@@ -49,9 +49,9 @@ namespace models {
     }
 
     // Добавить вершины в список для сохранение в формате obj
-    void models::setIndexes(const std::vector<int>& vector) {
-        indexes.emplace_back(vector);
-    }
+    //void models::setIndexes(const std::vector<int>& vector) {
+      //  indexes.emplace_back(vector);
+    //}
 
     // Получить список вершин полигонов в формате obj
     std::vector<std::vector<int>> models::getIndexes() {

@@ -8,7 +8,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
-namespace objParser {
+namespace models {
     class [[maybe_unused]] objParser {
     public:
         [[maybe_unused]] static std::shared_ptr<models::models> parse(const std::string& pathToFile);

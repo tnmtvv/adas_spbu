@@ -2,9 +2,11 @@
 #define VISUALIZER_MODELS_H
 
 #include "coordinateSystem.h"
+#include "objParser.h"
 
 namespace models {
     class models {
+        friend class objParser;
     protected:
         // Система координат модели
         std::shared_ptr<coordinateSystem::coordinateSystem> coordinateSystem;
@@ -26,7 +28,6 @@ namespace models {
         void addGlobalPoints(const cv::Vec3d& vec);
 
         [[maybe_unused]] std::vector<cv::Point3d>& getLocalPoints();
-        void setIndexes(const std::vector<int>& vector);
         std::vector<std::vector<int>> getIndexes();
         cv::Vec3d getCoordinatesOfCenter();
         models();
