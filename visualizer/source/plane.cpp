@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "../include/plane.h"
 #include "opencv2/opencv.hpp"
 
@@ -65,6 +67,20 @@ namespace models {
 
     [[maybe_unused]] double plane::getLength() const {
         return length;
+    }
+
+    [[maybe_unused]] void plane::setStrategy(std::shared_ptr<StrategyOfAddBorders> newStrategy) {
+        strategy = std::move(newStrategy);
+    }
+
+    [[maybe_unused]] void plane::addBorders(std::vector<cv::Point2i> vector) {
+        auto points = strategy->Strategy(std::move(vector));
+        if (points.back().x < 0) {
+            leftBorder.insert(leftBorder.end(), points.begin(), points.end());
+        }
+        else {
+            rightBorder.insert(rightBorder.end(), points.begin(), points.end());
+        }
     }
 
     /*

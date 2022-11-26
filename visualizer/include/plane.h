@@ -2,6 +2,7 @@
 #define VISUALIZER_PLANE_H
 
 #include "models.h"
+#include "StrategyOfAddBorders.h"
 
 namespace models {
     class [[maybe_unused]] plane : public models{
@@ -9,6 +10,9 @@ namespace models {
         double width;
         double length;
         void initializateLocalPoints();
+        std::shared_ptr<StrategyOfAddBorders> strategy;
+        std::vector<cv::Point3d> leftBorder;
+        std::vector<cv::Point3d> rightBorder;
     public:
 
         plane(const cv::Vec3d& planeCoordinates, double width, double length);
@@ -24,7 +28,9 @@ namespace models {
 
         [[maybe_unused]] [[nodiscard]] double getLength() const;
 
-        virtual void addBorders() = 0;
+        [[maybe_unused]] void addBorders(std::vector<cv::Point2i>);
+
+        [[maybe_unused]] void setStrategy(std::shared_ptr<StrategyOfAddBorders> newStrategy);
     };
 }
 
