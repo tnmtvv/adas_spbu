@@ -28,7 +28,8 @@ namespace coordinateSystem {
         [[nodiscard]] double getAngle(Axis axis) const;
         cv::Mat getCoordinatesOfCenter();
         void setCoordinatesOfCenter(const cv::Vec3d& vector);
-        cv::Mat getRotationMatrix();
+
+        [[maybe_unused]] cv::Mat getRotationMatrix();
     };
 }
 

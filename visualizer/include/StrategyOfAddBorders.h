@@ -7,9 +7,9 @@ namespace models {
 
     class StrategyOfAddBorders {
     public:
-        virtual std::vector<cv::Point3d> Strategy(std::vector<cv::Point2i> vector) = 0;
+        virtual std::vector<cv::Point3d> Strategy(std::vector<cv::Point2d> vector) = 0;
     };
 
 }
 
-#endif //VISUALIZER_STRATEGYOFADDBORDERS_H
+#endif

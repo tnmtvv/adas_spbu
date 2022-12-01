@@ -28,8 +28,10 @@ namespace models {
         this->localPoints.emplace_back(-width / 2, -length / 2, 0);
 
         // Вершины нужных нам полигонов
-        indexes.emplace_back(std::vector<int>{0, 1, 2});
-        indexes.emplace_back(std::vector<int>{1, 2, 3});
+        indexes.emplace_back(std::vector<int>{0, 1});
+        indexes.emplace_back(std::vector<int>{0, 2});
+        indexes.emplace_back(std::vector<int>{2, 3});
+        indexes.emplace_back(std::vector<int>{1, 3});
 
         // Считаем глобальные координаты
         for (auto & localPoint : localPoints)
@@ -73,14 +75,24 @@ namespace models {
         strategy = std::move(newStrategy);
     }
 
-    [[maybe_unused]] void plane::addBorders(std::vector<cv::Point2i> vector) {
+    [[maybe_unused]] void plane::addBorders(std::vector<cv::Point2d> vector) {
         auto points = strategy->Strategy(std::move(vector));
+        if (points[0].y > points[points.size() - 1].y) {
+            std::reverse(points.begin(), points.end());
+        }
         if (points.back().x < 0) {
             leftBorder.insert(leftBorder.end(), points.begin(), points.end());
         }
         else {
             rightBorder.insert(rightBorder.end(), points.begin(), points.end());
         }
+    }
+
+    std::vector<cv::Point3d> plane::getLeftBorder() {
+        return leftBorder;
+    }
+    std::vector<cv::Point3d> plane::getRightBorder() {
+        return rightBorder;
     }
 
     /*

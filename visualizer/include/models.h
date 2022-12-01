@@ -2,7 +2,6 @@
 #define VISUALIZER_MODELS_H
 
 #include "coordinateSystem.h"
-#include "objParser.h"
 
 namespace models {
     class models {
@@ -32,6 +31,8 @@ namespace models {
         cv::Vec3d getCoordinatesOfCenter();
         models();
         void moveInLocalCoordinates(cv::Vec3d vector);
+
+        void setCoordinatesOfCenter(cv::Vec3d vec);
     };
 }
 

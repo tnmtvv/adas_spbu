@@ -12,6 +12,12 @@ namespace models {
         }
     }
 
+    // Получить координаты локальной системы координат объекта
+    void models::setCoordinatesOfCenter(cv::Vec3d vec) {
+        auto center = this->getCoordinatesOfCenter();
+        this->move(cv::Vec3d(-center[0] + vec[0], -center[1] + vec[1], -center[2] + vec[2]));
+    }
+
     // Перенести модель в локальных координатах
     void models::moveInLocalCoordinates(cv::Vec3d vector) {
         vector = coordinateSystem->moveToGlobalCoordinates(vector);

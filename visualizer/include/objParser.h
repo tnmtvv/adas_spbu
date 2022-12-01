@@ -11,9 +11,9 @@
 namespace models {
     class [[maybe_unused]] objParser {
     public:
-        [[maybe_unused]] static std::shared_ptr<models::models> parse(const std::string& pathToFile);
+        [[maybe_unused]] static std::shared_ptr<models> parse(const std::string& pathToFile);
 
-        [[maybe_unused]] static void write(const std::vector<std::shared_ptr<models::models>>& models, const std::string& pathToFile);
+        [[maybe_unused]] static void write(const std::vector<std::shared_ptr<models>>& models, const std::string& pathToFile);
     };
 }
 

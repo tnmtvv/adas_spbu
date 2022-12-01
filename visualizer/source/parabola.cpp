@@ -6,31 +6,29 @@ namespace models {
         return firstCoefficient * x * x + secondCoefficient * x + thirdCoefficient;
     }
 
-    void parabola::calculateParabolaPoints(const cv::Point2i& firstPoint, const cv::Point2i& secondPoint, const cv::Point2i& thirdPoint) {
+    void parabola::calculateParabolaPoints(const cv::Point2d& firstPoint, const cv::Point2d& secondPoint, const cv::Point2d& thirdPoint) {
 
         // ax_1^2 + bx_1 + c = y1
         // ax_2^2 + bx_2 + c = y2
         // ax_3^2 + bx_3 + c = y3
 
-        int delta[3][3] = {{firstPoint.x * firstPoint.x, firstPoint.x, 1},
-                           {secondPoint.x * secondPoint.x, secondPoint.x, 1},
-                           {thirdPoint.x * thirdPoint.x, thirdPoint.x, 1}};
-        cv::Mat deltaMat(3, 3, CV_64FC1, delta);
 
-        int deltaA[3][3] = {{firstPoint.y, firstPoint.x, 1},
-                            {secondPoint.y, secondPoint.x, 1},
-                            {thirdPoint.y, thirdPoint.x, 1}};
-        cv::Mat deltaForFirstCoefficient(3, 3, CV_64FC1, deltaA);
+        cv::Mat deltaMat = (cv::Mat_<double>(3, 3) << firstPoint.x * firstPoint.x, firstPoint.x, 1,
+                secondPoint.x * secondPoint.x, secondPoint.x, 1,
+                thirdPoint.x * thirdPoint.x, thirdPoint.x, 1);
 
-        int deltaB[3][3] = {{firstPoint.x * firstPoint.x, firstPoint.y, 1},
-                            {secondPoint.x * secondPoint.x, secondPoint.y, 1},
-                            {thirdPoint.x * thirdPoint.x, thirdPoint.y, 1}};
-        cv::Mat deltaForSecondCoefficient(3, 3, CV_64FC1, deltaB);
+        cv::Mat deltaForFirstCoefficient = (cv::Mat_<double>(3, 3) << firstPoint.y, firstPoint.x, 1,
+                secondPoint.y, secondPoint.x, 1,
+                thirdPoint.y, thirdPoint.x, 1);
 
-        int deltaC[3][3] = {{firstPoint.x * firstPoint.x, firstPoint.x, firstPoint.y},
-                            {secondPoint.x * secondPoint.x, secondPoint.x, firstPoint.y},
-                            {thirdPoint.x * thirdPoint.x, thirdPoint.x, firstPoint.y}};
-        cv::Mat deltaForThirdCoefficient(3, 3, CV_64FC1, deltaC);
+        cv::Mat deltaForSecondCoefficient = (cv::Mat_<double>(3, 3) << firstPoint.x * firstPoint.x, firstPoint.y, 1,
+                secondPoint.x * secondPoint.x, secondPoint.y, 1,
+                thirdPoint.x * thirdPoint.x, thirdPoint.y, 1);
+
+
+        cv::Mat deltaForThirdCoefficient = (cv::Mat_<double>(3, 3) << firstPoint.x * firstPoint.x, firstPoint.x, firstPoint.y,
+                secondPoint.x * secondPoint.x, secondPoint.x, secondPoint.y,
+                thirdPoint.x * thirdPoint.x, thirdPoint.x, thirdPoint.y);
 
         auto denominator = cv::determinant(deltaMat);
         auto numeratorForFirstCoefficient = cv::determinant(deltaForFirstCoefficient);
@@ -44,11 +42,13 @@ namespace models {
         auto minXCoordinates = fmin(fmin(secondPoint.x, thirdPoint.x), firstPoint.x);
         auto maxXCoordinates = fmax(fmax(secondPoint.x, thirdPoint.x), firstPoint.x);
 
-        double step = 0.5;
+        double step = 1;
         auto currentXCoordinate = minXCoordinates;
+
+
         while (currentXCoordinate < maxXCoordinates) {
-            localPoints.emplace_back(currentXCoordinate, countParabolaValue(minXCoordinates), 0);
-            minXCoordinates += step;
+            localPoints.emplace_back(currentXCoordinate, countParabolaValue(currentXCoordinate), 0);
+            currentXCoordinate += step;
         }
 
         if (abs(localPoints.back().x - maxXCoordinates) > 0.01) {
@@ -56,7 +56,7 @@ namespace models {
         }
     }
 
-    [[maybe_unused]] parabola::parabola(const cv::Point2i& firstPoint, const cv::Point2i& secondPoint, const cv::Point2i& thirdPoint) {
+    [[maybe_unused]] parabola::parabola(const cv::Point2d& firstPoint, const cv::Point2d& secondPoint, const cv::Point2d& thirdPoint) {
         calculateParabolaPoints(firstPoint, secondPoint, thirdPoint);
 
         for (auto & localPoint : localPoints)

@@ -6,9 +6,9 @@
 
 namespace models {
 
-    class ParabolaStrategy : public StrategyOfAddBorders{
+    class [[maybe_unused]] ParabolaStrategy : public StrategyOfAddBorders{
         public:
-        std::vector<cv::Point3d> Strategy(std::vector<cv::Point2i> vector) override;
+        std::vector<cv::Point3d> Strategy(std::vector<cv::Point2d> vector) override;
     };
 
 } // models

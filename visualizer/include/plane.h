@@ -28,9 +28,13 @@ namespace models {
 
         [[maybe_unused]] [[nodiscard]] double getLength() const;
 
-        [[maybe_unused]] void addBorders(std::vector<cv::Point2i>);
+        [[maybe_unused]] void addBorders(std::vector<cv::Point2d> vector);
 
         [[maybe_unused]] void setStrategy(std::shared_ptr<StrategyOfAddBorders> newStrategy);
+
+        [[maybe_unused]] std::vector<cv::Point3d> getLeftBorder();
+
+        std::vector<cv::Point3d> getRightBorder();
     };
 }
 
