@@ -8,7 +8,7 @@ namespace models {
 
     class [[maybe_unused]] ParabolaStrategy : public StrategyOfAddBorders{
         public:
-        std::vector<cv::Point3d> Strategy(std::vector<cv::Point2d> vector) override;
+        std::shared_ptr<Borders> Strategy(std::vector<cv::Point2d> vector) override;
     };
 
 } // models

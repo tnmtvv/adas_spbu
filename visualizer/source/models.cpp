@@ -13,7 +13,7 @@ namespace models {
     }
 
     // Получить координаты локальной системы координат объекта
-    void models::setCoordinatesOfCenter(cv::Vec3d vec) {
+    [[maybe_unused]] void models::setCoordinatesOfCenter(cv::Vec3d vec) {
         auto center = this->getCoordinatesOfCenter();
         this->move(cv::Vec3d(-center[0] + vec[0], -center[1] + vec[1], -center[2] + vec[2]));
     }
@@ -25,7 +25,7 @@ namespace models {
     }
 
     // Поворот модели
-    void models::rotate(double angle, Axis axis) {
+    void models::rotate(double angle, coordinateSystem::Axis axis) {
         coordinateSystem->rotate(angle, axis);
         globalPoints.clear();
         for (auto & localPoint : localPoints){

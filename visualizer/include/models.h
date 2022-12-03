@@ -22,7 +22,7 @@ namespace models {
     public:
         void move(cv::Vec3d vector);
         std::shared_ptr<coordinateSystem::coordinateSystem> getCoordinateSystem();
-        void rotate(double angle, Axis axis);
+        void rotate(double angle, coordinateSystem::Axis axis);
         std::vector<cv::Point3d>& getGlobalPoints();
         void addGlobalPoints(const cv::Vec3d& vec);
 
@@ -32,7 +32,7 @@ namespace models {
         models();
         void moveInLocalCoordinates(cv::Vec3d vector);
 
-        void setCoordinatesOfCenter(cv::Vec3d vec);
+        [[maybe_unused]] void setCoordinatesOfCenter(cv::Vec3d vec);
     };
 }
 

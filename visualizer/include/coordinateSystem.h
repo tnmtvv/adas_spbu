@@ -3,13 +3,13 @@
 
 #include "opencv2/opencv.hpp"
 
-enum Axis{
-    xAxis,
-    yAxis,
-    zAxis
-};
-
 namespace coordinateSystem {
+    enum Axis{
+        xAxis,
+        yAxis,
+        zAxis
+    };
+
     class coordinateSystem {
     private:
         cv::Mat coordinatesOfCenterOfCoordinateSystem;

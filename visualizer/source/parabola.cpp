@@ -12,7 +12,6 @@ namespace models {
         // ax_2^2 + bx_2 + c = y2
         // ax_3^2 + bx_3 + c = y3
 
-
         cv::Mat deltaMat = (cv::Mat_<double>(3, 3) << firstPoint.x * firstPoint.x, firstPoint.x, 1,
                 secondPoint.x * secondPoint.x, secondPoint.x, 1,
                 thirdPoint.x * thirdPoint.x, thirdPoint.x, 1);
@@ -39,9 +38,20 @@ namespace models {
         secondCoefficient = numeratorForSecondCoefficient / denominator;
         thirdCoefficient = numeratorForThirdCoefficient / denominator;
 
+
         auto minXCoordinates = fmin(fmin(secondPoint.x, thirdPoint.x), firstPoint.x);
         auto maxXCoordinates = fmax(fmax(secondPoint.x, thirdPoint.x), firstPoint.x);
 
+        if (countParabolaValue(minXCoordinates) < countParabolaValue(maxXCoordinates)) {
+            localPoints.emplace_back(minXCoordinates, countParabolaValue(minXCoordinates), 0);
+            localPoints.emplace_back(maxXCoordinates, countParabolaValue(maxXCoordinates), 0);
+        }
+        else {
+            localPoints.emplace_back(maxXCoordinates, countParabolaValue(maxXCoordinates), 0);
+            localPoints.emplace_back(minXCoordinates, countParabolaValue(minXCoordinates), 0);
+        }
+
+        /*
         double step = 1;
         auto currentXCoordinate = minXCoordinates;
 
@@ -53,7 +63,7 @@ namespace models {
 
         if (abs(localPoints.back().x - maxXCoordinates) > 0.01) {
             localPoints.emplace_back(maxXCoordinates, countParabolaValue(maxXCoordinates), 0);
-        }
+        }*/
     }
 
     [[maybe_unused]] parabola::parabola(const cv::Point2d& firstPoint, const cv::Point2d& secondPoint, const cv::Point2d& thirdPoint) {
@@ -67,5 +77,21 @@ namespace models {
 
     [[maybe_unused]] cv::Vec3d parabola::parabolaCoefficient() const {
         return {firstCoefficient, secondCoefficient, thirdCoefficient};
+    }
+
+    double parabola::findBorderValue(double y) {
+        double extremum = -secondCoefficient/firstCoefficient * 0.5;
+        auto x1 = -secondCoefficient + sqrt(secondCoefficient * secondCoefficient - 4 * firstCoefficient * (thirdCoefficient - y));
+        x1 /= 2;
+        if (x1 > extremum &&  localPoints[0].x > extremum || x1 < extremum && localPoints[0].x < extremum) {
+            return x1;
+        }
+        auto x2 = -secondCoefficient - sqrt(secondCoefficient * secondCoefficient - 4 * firstCoefficient * (thirdCoefficient - y));
+        x2 /= 2;
+        return x2;
+    }
+
+    bool parabola::specificBorderIsValid() {
+        return false;
     }
 }

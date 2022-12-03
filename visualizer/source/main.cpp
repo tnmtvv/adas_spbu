@@ -11,7 +11,7 @@ if (event == cv::MouseEventTypes::EVENT_LBUTTONDOWN)
 */
 int main() {
 
-/*-------------------------Использовал для отладки безнаписания gui--------------------
+/*-------------------------Использовал для отладки до начала написания gui--------------------
 cv:: Mat internal = (cv::Mat_<double>(3, 3) << 50, 0, 960, 0, 50, 540, 0, 0, 1);
 auto kek = std::make_shared<models::plane>(cv::Vec3d(0, 0, 0), 10, 50);
 auto newCamera = models::camera(internal);

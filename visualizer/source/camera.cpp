@@ -65,10 +65,7 @@ namespace models {
 
     [[maybe_unused]] [[maybe_unused]] void camera::displayPoints(const std::vector<cv::Point3d>& points) {
 
-        // Знаю, что максимально неэффективно, вместо проверки на то что точка сзади камеры, буду отправлять
-        // в эту функцию нужные точки
         std::vector<cv::Point2d> imagePoints;
-        cv::Mat distCoeffs(5, 1, CV_64FC1, cv::Scalar(0));
         std::vector<int> globalPoints;
         if (points.empty())
             return;
@@ -82,9 +79,11 @@ namespace models {
             imagePoints.emplace_back(x, y);
         }
         /*
+        cv::Mat distCoeffs(5, 1, CV_64FC1, cv::Scalar(0));
         cv::projectPoints(points, this->getCoordinateSystem()->getRotationMatrix(),
                           this->getCoordinateSystem()->getCoordinatesOfCenter(), internalCameraParameters, distCoeffs,
                           imagePoints);*/
+
         for (int i = 0; i < imagePoints.size() - 1; i++) {
             cv::line(cameraPlane, imagePoints[i], imagePoints[i+1], 255);
         }
@@ -131,6 +130,6 @@ namespace models {
         auto rad = coordinates[0] * coordinates[0] + coordinates[1]*coordinates[1] + coordinates[2]*coordinates[2];
         auto tsquare = sqrt(2*rad*(1 - cos(angle)));
         this->moveInLocalCoordinates(cv::Vec3d(tsquare*cos(angle / 2), 0, tsquare*sin(angle / 2 )));
-        this->rotate(angle, yAxis);
+        this->rotate(angle, coordinateSystem::yAxis);
     }
 }

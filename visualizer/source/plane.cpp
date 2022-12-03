@@ -2,7 +2,7 @@
 
 #include "../include/plane.h"
 #include "opencv2/opencv.hpp"
-
+#include "../include/Borders.h"
 namespace models {
     plane::plane(const cv::Vec3d& planeCoordinates, double newWidth, double newLength) : models() {
         move(planeCoordinates);
@@ -40,7 +40,7 @@ namespace models {
         }
     }
 
-    [[maybe_unused]] std::vector<std::shared_ptr<plane>> plane::mergePlanes(Axis axis, double maxAngle, double stepLength,
+    [[maybe_unused]] std::vector<std::shared_ptr<plane>> plane::mergePlanes(coordinateSystem::Axis axis, double maxAngle, double stepLength,
                                                            double stepAngle)
     {
         std::vector<std::shared_ptr<plane>> planes;
@@ -71,29 +71,32 @@ namespace models {
         return length;
     }
 
-    [[maybe_unused]] void plane::setStrategy(std::shared_ptr<StrategyOfAddBorders> newStrategy) {
-        strategy = std::move(newStrategy);
+    std::vector<std::shared_ptr<Borders>> plane::getRightBorderModels() {
+        return rightBorderModels;
     }
 
-    [[maybe_unused]] void plane::addBorders(std::vector<cv::Point2d> vector) {
-        auto points = strategy->Strategy(std::move(vector));
-        if (points[0].y > points[points.size() - 1].y) {
-            std::reverse(points.begin(), points.end());
-        }
-        if (points.back().x < 0) {
-            leftBorder.insert(leftBorder.end(), points.begin(), points.end());
-        }
-        else {
-            rightBorder.insert(rightBorder.end(), points.begin(), points.end());
-        }
+    std::vector<std::shared_ptr<Borders>> plane::getLeftBorderModels() {
+        return leftBorderModels;
     }
 
-    std::vector<cv::Point3d> plane::getLeftBorder() {
+    void plane::addLeftBorder(std::shared_ptr<Borders>) {
+        leftBorderModels.emplace_back();
+    }
+
+    void plane::addRightBorder(std::shared_ptr<Borders>) {
+        rightBorderModels.emplace_back();
+    }
+
+    /*std::vector<cv::Point3d> plane::getLeftBorder() {
         return leftBorder;
     }
     std::vector<cv::Point3d> plane::getRightBorder() {
         return rightBorder;
     }
+
+    std::vector<std::shared_ptr<models>> plane::getBorderModels() {
+        return borderModels;
+    }*/
 
     /*
     std::vector<std::shared_ptr<plane>> plane::createCrossRoad(const std::shared_ptr<plane>& plane1){
