@@ -1,4 +1,0 @@
-/snap/clion/218/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/usr/bin/gmake -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/c++ -G "CodeBlocks - Unix Makefiles" -S /home/maria/Code/adas_spbu -B /home/maria/Code/adas_spbu/cmake-build-debug
--- Configuring done
--- Generating done
--- Build files have been written to: /home/maria/Code/adas_spbu/cmake-build-debug
