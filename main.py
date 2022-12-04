@@ -2,6 +2,7 @@ import argparse
 import ast
 import os.path
 import random
+from copy import copy
 
 from EasyGA.mutation import Mutation
 from AUDI_methods import AUDIMethods
@@ -44,7 +45,7 @@ def run_algo(pcd):
     o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)]+[rest])
 
 
-def build_point_clouds_and_lidars(lidar_list):
+def build_point_clouds_and_lidars(lidar_list, num_shots):
 
     list_pcds = []
     list_lidars = []
@@ -60,7 +61,7 @@ def build_point_clouds_and_lidars(lidar_list):
         list_pcds.append(pcd_front_center)
         list_lidars.append(lidar_front_center)
 
-    return list_pcds, list_lidars
+    return list_pcds[:num_shots], list_lidars[:num_shots]
 
 
 def extract_images(images_path_list):
@@ -81,13 +82,21 @@ def create_lidar_image_lists(path_to_lidar: str, path_to_images: str):
     list_lidar = list(map(lambda x: os.path.join(path_to_lidar, x), lidar_files))
     list_images = list(map(lambda x: os.path.join(path_to_images, x), images_files))
 
+    len_list = len(list_lidar)
+
+    # return list_lidar[int(len_list/2)-5:], list_images[int(len_list/2)-5:]
     return list_lidar, list_images
+
+
+def find_left_right(inlier_points):
+    sorted_points = sorted(inlier_points, key=lambda x: x[1])
+    return sorted_points[0][1], sorted_points[-1][1]
 
 
 def ransac_segmentation(list_pcds, distance_threshold=0.4):
     list_outliers = []
     list_inliers = []
-    list_indx = []
+    list_masks = []
 
     for pcd in list_pcds:
         plane_model, inliers = pcd.segment_plane(distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000)
@@ -95,31 +104,74 @@ def ransac_segmentation(list_pcds, distance_threshold=0.4):
         inlier_cloud = pcd.select_by_index(inliers)
         outlier_cloud = pcd.select_by_index(inliers, invert=True)
 
+        left_bound, right_bound = find_left_right(list(inlier_cloud.points))
+
+        cur_outlier_points = np.array(outlier_cloud.points).tolist()
+        outlier_points = list(filter(lambda x: (left_bound <= x[1] <= right_bound).all(axis=0), cur_outlier_points))
+        outlier_cloud.points = o3d.utility.Vector3dVector(outlier_points)
+
+        merged_cloud = outlier_cloud + inlier_cloud
+        plane_model, inliers = merged_cloud.segment_plane(distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000)
+
+        inlier_cloud = merged_cloud.select_by_index(inliers)
+        outlier_cloud = merged_cloud.select_by_index(inliers, invert=True)
+        mask = np.ones(len(merged_cloud.points), np.bool)
+        mask[inliers] = 0
+
         list_outliers.append(outlier_cloud)
         list_inliers.append(inlier_cloud)
-        list_indx.append(inliers)
-    return list_outliers, list_inliers, list_indx
+        list_masks.append(np.asarray(mask))
+
+    return list_outliers, list_inliers, list_masks
 
 
-def get_progection(equation, coordinates):
-    # (x - a)/equaion[0] = (y - b)/equation[1] = (z - c)/equation[2]
-    pass
+def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
+    clusters_pcds = []
+    clusters_dists = []
+    pcd.paint_uniform_color([0, 0, 0])
+
+    #filter from < 0
+    labels_filtered = list(filter(lambda x: x >= 0, labels))
+
+    for i, label_1 in enumerate(labels_filtered):
+        for j, label_2 in enumerate(labels_filtered[i + 1:]):
+            new_pcd = copy(pcd)
+            cur_color_1 = hm_lables_colors[label_1]
+            cur_color_2 = hm_lables_colors[label_2]
+
+            cluster_1 = pcd.select_by_index(indices[i])
+            cluster_2 = pcd.select_by_index(indices[i + j + 1])
+
+            colors = np.zeros(np.shape(pcd.points))
+            colors[indices[i]] = cur_color_1
+            colors[indices[i + j + 1]] = cur_color_2
+
+            new_pcd.colors = o3d.utility.Vector3dVector(colors)
+
+            dists = cluster_1.compute_point_cloud_distance(cluster_2)
+            dists = np.asarray(dists)
+            min_dist = np.min(dists)
+
+            clusters_dists.append(min_dist)
+            clusters_pcds.append(new_pcd)
+    return clusters_dists, clusters_pcds
 
 
 def main(path_to_lidar: str, path_to_images: str,
          num_shots_to_optimise: int, generation_goal: int, population_size: int, fitness_function: int, mode: int, verbose=False):
 
     list_lidar, list_images = create_lidar_image_lists(path_to_lidar, path_to_images)
-
-    pcds, lidars = build_point_clouds_and_lidars(list_lidar)
-    images = extract_images(list_images)
-
     if num_shots_to_optimise == 0:
-        num_shots_to_optimise = len(list_lidar) - 1
+        num_shots_to_optimise = len(list_lidar)
+
+    pcds, lidars = build_point_clouds_and_lidars(list_lidar, num_shots_to_optimise)
 
     ga = My_GA(num_shots_to_optimise, fitness_function, generation_goal, population_size)
     ga.chromosome_length = 2
-    ga.pcds_outliers, ga.pcds_inliers, list_indx = ransac_segmentation(pcds, 0.125)
+    ga.pcds_outliers, ga.pcds_inliers, list_masks = ransac_segmentation(pcds, 0.125)
+
+    clusters_indices = []
+    dicts_label_color = []
 
     for i, inlier in enumerate(ga.pcds_inliers):
         plane_equation = Plane.get_equation(inlier.points)
@@ -142,6 +194,7 @@ def main(path_to_lidar: str, path_to_images: str,
     ga.crossover_population_impl = Crossover.Population.random
     ga.mutation_population_impl = Mutation.Population.random_avoid_best
     ga.fitness_function_impl = ga.fitting_function
+    ga.gene_mutation_rate = 0.005
 
     while ga.active():
         ga.evolve(1)
@@ -155,46 +208,74 @@ def main(path_to_lidar: str, path_to_images: str,
     best_params = ga.population[0]
 
     for i, pcd in enumerate(zip(ga.pcds_outliers, ga.pcds_inliers)):
+        cur_pcd_clusters = []
+        cur_label_color = {}
+
         pcd_outlier, pcd_inlier = pcd
+        # o3d.visualization.draw_geometries([pcd_outlier])
 
         clustering = skc.DBSCAN(eps=best_params[0].value, min_samples=best_params[1].value).fit(np.asarray(pcd_outlier.points))
+        # clustering = skc.DBSCAN(eps=0.9, min_samples=6).fit(
+        #      np.asarray(pcd_outlier.points))
         labels = clustering.labels_
         unique_labels = np.unique(labels)
         set_colors = set()
 
         merged_pcd = pcd_inlier + pcd_outlier
         colors = np.zeros(np.shape(merged_pcd.points))
+
         colors_outlier = np.zeros(np.shape(pcd_outlier.points))
 
         for label in unique_labels:
             if label < 0:
                 colors_outlier[np.where(labels == label)] = [0, 0, 0]
             else:
-                cur_color = plt.get_cmap("prism")(random.randint(1, len(unique_labels)))[:3]
+                cur_indices = np.where(labels == label)[0].tolist()
+                cur_color = plt.get_cmap("prism")(random.randint(1, 1000))[:3]
+                while(cur_color in set_colors):
+                    cur_color = plt.get_cmap("prism")(random.randint(1, 1000))[:3]
+                set_colors.add(cur_color)
+                cur_label_color[label] = cur_color
                 colors_outlier[np.where(labels == label)] = cur_color
                 set_colors.add(cur_color)
+                cur_pcd_clusters.append(cur_indices)
+
+        clusters_indices.append(cur_pcd_clusters)
+        dicts_label_color.append(cur_label_color)
+
+        # colors_outlier = np.zeros(np.shape(pcd_outlier.points))
 
         pcd_outlier.colors = o3d.utility.Vector3dVector(colors_outlier)
-        merged_pcd_1 = pcd_inlier + pcd_outlier
+        pcd_inlier.paint_uniform_color([0, 0, 0])
+
+        merged_pcd_1 = pcd_outlier + pcd_inlier
+        # o3d.visualization.draw_geometries([pcd_outlier])
 
         if mode == 1:  # only point clouds
             o3d.visualization.draw_geometries([merged_pcd_1])
+            # if_dists = int(input("show distances"))
+            #
+            # if if_dists:
+            #     dists, pair_clusters = separate_all_clusters(merged_pcd_1, unique_labels, cur_label_color,
+            #                                                  cur_pcd_clusters)
+            #     for j, pair in enumerate(pair_clusters):
+            #         print(dists[j])
+            #         o3d.visualization.draw_geometries([pair])
+
         elif mode == 2: # mapped images
             mapped_images = []
+            images = extract_images(list_images)
 
             cur_image = AUDIMethods.map_lidar_points_onto_image(images[i], lidars[i], colors)
             mapped_images.append(cur_image)
+            # o3d.visualization.draw_geometries([merged_pcd_1])
 
             plt.fig = plt.figure(figsize=(20, 20))
             plt.imshow(cur_image)
             plt.axis('off')
             plt.close()
         elif mode == 3:  # with editing
-            cur_inlier_indices = list_indx[i]
-
-            mask = np.ones(colors.shape[0], bool)
-            mask[cur_inlier_indices] = 0
-            colors[mask] = colors_outlier
+            colors[list_masks[i]] = colors_outlier
 
             vis = o3d.visualization.VisualizerWithEditing()
             vis.create_window()
@@ -208,7 +289,8 @@ def main(path_to_lidar: str, path_to_images: str,
             dists = pcd_inlier.compute_point_cloud_distance(mismatched_points)
             dists = np.asarray(dists)
             min_dist = np.min(dists)
-            print (min_dist)
+            print(min_dist)
+
 
 
 if __name__ == '__main__':

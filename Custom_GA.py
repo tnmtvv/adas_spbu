@@ -20,7 +20,7 @@ class My_GA(GA):
         self.fitness_funcion_num = fitness_function
 
     def fitting_function(self, chromosome):
-        cloud_number = random.randint(0, self.num_of_shots)
+        cloud_number = random.randint(0, self.num_of_shots - 1)
         points = np.asarray(self.pcds_projected_outliers[cloud_number].points)
         clustering = \
             skc.DBSCAN(eps=chromosome[0].value, min_samples=chromosome[1].value).fit(points)
@@ -30,25 +30,27 @@ class My_GA(GA):
             self.target_fitness_type = 'max'
             silhouette_score = float(metrics.silhouette_score(points, clustering.labels_))
 
-            if silhouette_score < 0.1 or num_of_clusters < 10 or num_of_clusters > 150:
-                fitness = 0
+            if silhouette_score < 0.1 or num_of_clusters < 20 or num_of_clusters > 50:
+                fitness = -1
             else:
                 fitness = silhouette_score
+            # fitness = silhouette_score
             return fitness
         elif self.fitness_funcion_num == 2:  # davies-bouldin
             self.target_fitness_type = 'min'
             davies_bouldin_score = float(metrics.davies_bouldin_score(points, clustering.labels_))
 
-            if num_of_clusters < 10 or num_of_clusters > 20:  # need to check
+            if num_of_clusters < 7 or num_of_clusters > 50:  # need to check
                 fitness = 150
             else:
                 fitness = davies_bouldin_score
+            # fitness = davies_bouldin_score
             return fitness
         elif self.fitness_funcion_num == 3:  # calinski-harabasz
             self.target_fitness_type = 'max'
             calinski_harabasz_score = float(metrics.calinski_harabasz_score(points, clustering.labels_))
 
-            if calinski_harabasz_score < 0.1 or num_of_clusters < 14 or num_of_clusters > 150:
+            if calinski_harabasz_score < 0.1 or num_of_clusters < 14 or num_of_clusters > 50:
                 fitness = 0
             else:
                 fitness = calinski_harabasz_score
@@ -56,7 +58,7 @@ class My_GA(GA):
 
     def initialize_population(self):
         a_eps = 0.1
-        b_eps = 5
+        b_eps = 1.3
 
         a_min_samples = 1
         b_min_samples = self.population_size/2
@@ -69,7 +71,7 @@ class My_GA(GA):
         self.population = self.make_population(
             [
                 a_eps + i * h_eps,
-                i + 1
+                (i % 10) + 1
             ]
             for i
             in range(self.population_size)
