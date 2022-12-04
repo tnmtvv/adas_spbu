@@ -1,0 +1,4 @@
+/home/maria/Code/adas_spbu/cmake-build-debug/CMakeFiles/Tracking.dir
+/home/maria/Code/adas_spbu/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/maria/Code/adas_spbu/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/maria/Code/adas_spbu/cmake-build-debug/CMakeFiles/Tracking_autogen.dir

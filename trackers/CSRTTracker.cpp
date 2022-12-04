@@ -9,9 +9,13 @@ void CSRTTracker::startTracking(std::string path, cv::Rect2d pedestrian, int nFr
     tracker = cv::TrackerCSRT::create();
     cv::Mat frame;
     for (int i = 0; i < nFrame; i++){ capture >> frame;}
-    cv::fastNlMeansDenoising(frame, frame, 30, 7, 21);
+//    denoise(frame);
 
     tracker->init(frame, pedestrianBox);
+}
+
+void CSRTTracker::denoise(cv::Mat frame){
+    cv::fastNlMeansDenoising(frame, frame, 30, 7, 21);
 }
 
 CSRTTracker::CSRTTracker() = default;
@@ -19,7 +23,8 @@ CSRTTracker::CSRTTracker() = default;
 cv::Rect2d CSRTTracker::getNextPedestrianPosition() {
     cv::Mat frame;
     capture >> frame;
-    cv::fastNlMeansDenoising(frame, frame, 30, 7, 21);
+//    denoise(frame);
+//    cv::fastNlMeansDenoising(frame, frame, 30, 7, 21);
     if (!tracker->update(frame, pedestrianBox)) {
         std::cout << "failed csrt tracking" << std::endl;
     }

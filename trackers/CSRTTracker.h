@@ -13,6 +13,7 @@ class CSRTTracker : public Tracker {
     cv::VideoCapture capture;
     cv::Rect2i pedestrianBox;
     cv::Ptr<cv::TrackerCSRT> tracker;
+    void denoise(cv::Mat frame);
 public:
     CSRTTracker();
     void startTracking(std::string path, cv::Rect2d pedestrian, int nFrame) override;

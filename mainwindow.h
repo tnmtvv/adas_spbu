@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "MyTracker.h"
+#include "WindowState.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,8 +16,13 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void showTracking(std::string path);
+    void showTracking(const std::string& path);
 private:
+    WindowState state;
     Ui::MainWindow *ui;
+
+    void keyPressEvent(QKeyEvent *e);
+
+
 };
 #endif // MAINWINDOW_H

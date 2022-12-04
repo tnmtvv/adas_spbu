@@ -14,7 +14,7 @@ class OpticalFlowTracker : public Tracker {
     cv::Point2i getBoxMotion();
     cv::VideoCapture capture;
     cv::Rect2d pedestrianBox;
-
+    void denoise(cv::Mat frame);
     std::vector<cv::Point2f> selectGoodFeatures(std::vector<uchar> &status, cv::Mat &frame);
 
 public:
