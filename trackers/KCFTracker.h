@@ -5,17 +5,19 @@
 #include <opencv2/tracking.hpp>
 #include "Tracker.h"
 
-class KCFTracker: public Tracker {
+class KCFTracker : public Tracker {
     cv::VideoCapture capture;
     cv::Rect2i pedestrianBox;
     cv::Ptr<cv::TrackerKCF> tracker;
+
     void denoise(cv::Mat frame);
 
 public:
     KCFTracker();
-    void startTracking(std::string path, cv::Rect2d pedestrian, int nFrame) override;
-    cv::Rect2d getNextPedestrianPosition() override;
-};
 
+    void startTracking(const std::string &path, cv::Rect2d pedestrian, int nFrame) override;
+
+    const cv::Rect2d getNextPedestrianPosition() override;
+};
 
 #endif //OPTICALFLOWTRACKING_KCFTRACKER_H

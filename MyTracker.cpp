@@ -18,7 +18,6 @@ MyTracker::MyTracker() {
     weights.push_back(1);
 }
 
-
 cv::Rect2d MyTracker::getMeanResult(std::vector<cv::Rect2d> &boundingBoxes) {
     cv::Point2d avgCenter = {0, 0};
     cv::Point2d avgParams = {0, 0};
@@ -34,16 +33,15 @@ cv::Rect2d MyTracker::getMeanResult(std::vector<cv::Rect2d> &boundingBoxes) {
     return cv::Rect2d(avgCenter, cv::Size(avgParams.x, avgParams.y));
 }
 
-
-cv::Rect2d MyTracker::getNextPedestrianPosition() {
+const cv::Rect2d MyTracker::getNextPedestrianPosition() {
     std::vector<cv::Rect2d> boundingBoxes;
-    for (auto tracker: trackers){
+    for (auto tracker: trackers) {
         boundingBoxes.push_back(tracker->getNextPedestrianPosition());
     }
     return getMeanResult(boundingBoxes);
 }
 
-void MyTracker::startTracking(std::string path, cv::Rect2d pedestrian, int nFrame) {
+void MyTracker::startTracking(const std::string &path, cv::Rect2d pedestrian, int nFrame) {
     for (auto tracker: trackers) {
         tracker->startTracking(path, pedestrian, nFrame);
     }

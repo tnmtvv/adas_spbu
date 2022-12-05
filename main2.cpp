@@ -9,9 +9,6 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, char **argv) {
-
-
-
     if (argc != 2) {
         cerr << "Incorrect args" << endl;
         return 0;
@@ -28,7 +25,7 @@ int main(int argc, char **argv) {
     capture >> frame;
     box = selectROI("Frame", frame);
     MyTracker tracker = MyTracker();
-    tracker.startTracking(argv[1], box);
+    tracker.startTracking(argv[1], box, 1);
     while (!frame.empty()) {
         box = tracker.getNextPedestrianPosition();
         capture >> frame;

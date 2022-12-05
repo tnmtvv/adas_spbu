@@ -7,7 +7,7 @@ using namespace cv;
 
 OpticalFlowTracker::OpticalFlowTracker() = default;
 
-Point2f getMean(std::vector<Point2f> &vec) {
+Point2f getMean(const std::vector<Point2f> &vec) {
     float sumX = 0;
     float sumY = 0;
     for (const Point2f &p: vec) {
@@ -26,7 +26,7 @@ Point2i OpticalFlowTracker::getBoxMotion() {
     return newMean - oldMean;
 }
 
-cv::Rect2d getIntersection(Mat img, Rect2d box) {
+cv::Rect2d getIntersection(const Mat& img, const Rect2d& box) {
     Point2d leftCorner = {max(0.0, box.x - box.width / 2), max(0.0, box.y - box.width / 2)};
     Point2d rightCorner = {min(double(img.rows), box.x + box.width / 2), min(double(img.cols), box.y + box.width / 2)};
     return Rect2d(leftCorner, Size(rightCorner.x - leftCorner.x, rightCorner.y - leftCorner.y));
@@ -38,7 +38,7 @@ void OpticalFlowTracker::updateBoxPosition() {
     pedestrianBox.y += boxMotion.y;
 }
 
-void OpticalFlowTracker::startTracking(std::string path, Rect2d pedestrian, int nFrame) {
+void OpticalFlowTracker::startTracking(const std::string& path, Rect2d pedestrian, int nFrame) {
     this->capture = VideoCapture(path);
     this->pedestrianBox = pedestrian;
     for (int i = 0; i < nFrame; i++){ capture >> oldFrame;}
@@ -46,7 +46,7 @@ void OpticalFlowTracker::startTracking(std::string path, Rect2d pedestrian, int 
     goodFeaturesToTrack(oldGray(pedestrianBox), oldFeatures, featuresCount, 0.3, 7, Mat(), 7, false, 0.04);
 }
 
-Rect2d OpticalFlowTracker::getNextPedestrianPosition() {
+const Rect2d OpticalFlowTracker::getNextPedestrianPosition() {
     Mat newFrame, newGray;
     capture >> newFrame;
     cvtColor(newFrame, newGray, COLOR_BGR2GRAY);

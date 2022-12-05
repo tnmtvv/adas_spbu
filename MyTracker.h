@@ -9,14 +9,16 @@ class MyTracker : Tracker {
     std::vector<Tracker *> trackers;
     std::vector<double> weights;
     cv::VideoCapture capture;
-    cv::Rect2d getMeanResult(std::vector<cv::Rect2d>& boundingBoxes);
+
+    cv::Rect2d getMeanResult(std::vector<cv::Rect2d> &boundingBoxes);
+
 public:
 
     MyTracker();
 
-    void startTracking(std::string path, cv::Rect2d pedestrian, int nFrame);
+    void startTracking(const std::string &path, cv::Rect2d pedestrian, int nFrame) override;
 
-    cv::Rect2d getNextPedestrianPosition();
+    const cv::Rect2d getNextPedestrianPosition() override;
 
 };
 

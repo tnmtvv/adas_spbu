@@ -41,9 +41,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-
-
-void MainWindow::showTracking(const std::string& path) {
+void MainWindow::showTracking(const std::string &path) {
 
     VideoCapture capture(path);
     if (!capture.isOpened()) {

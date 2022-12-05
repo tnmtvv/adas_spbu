@@ -3,7 +3,9 @@
 
 /videos
 СMakeLists.txt.user
-
+/.idea
+/cmake-build-debug
+/cmake-build-release
 
 *~
 *.autosave

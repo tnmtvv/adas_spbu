@@ -38,8 +38,6 @@ else()
     trackers/KCFTracker.h
     trackers/CSRTTracker.cpp
     trackers/CSRTTracker.h
-    state.cpp
-    state.h
           WindowState.h)
 endif()
 
