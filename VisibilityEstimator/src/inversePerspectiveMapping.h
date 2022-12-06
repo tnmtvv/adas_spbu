@@ -14,10 +14,10 @@ namespace distanceEstimator
     class inversePerspectiveMapping
     {
     public:
-        inversePerspectiveMapping(int sizeX, int sizeY, int fx, int fy,
-            int opticalCenterX, int opticalCenterY, int cameraHeight, int pitch) :
-            sizeX(sizeX), sizeY(sizeY), focalLengthX(fx), focalLengthY(fy),
-            opticalCenterX(opticalCenterX), opticalCenterY(opticalCenterY), cameraHeight(cameraHeight), pitch(CV_PI* pitch / 180)
+        inversePerspectiveMapping(int sizeX, int sizeY, int focalLength,
+                                  int opticalCenterX, int opticalCenterY, double cameraHeight, float pitch) :
+                sizeX(sizeX), sizeY(sizeY), focalLength(focalLength),
+                opticalCenterX(opticalCenterX), opticalCenterY(opticalCenterY), cameraHeight(cameraHeight), pitch(pitch)
         {
         }
 
@@ -27,14 +27,13 @@ namespace distanceEstimator
         int sizeX;
         int sizeY;
 
-        int focalLengthX;
-        int focalLengthY;
+        int focalLength;
 
         int opticalCenterX;
         int opticalCenterY;
 
-        int cameraHeight;
-        double pitch;
+        double cameraHeight;
+        float pitch;
 
         cv::Mat getProjectiveTransfromationMatrix(cv::Size size);
 

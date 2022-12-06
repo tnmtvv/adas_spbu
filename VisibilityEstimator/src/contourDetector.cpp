@@ -41,15 +41,13 @@ namespace EdgeDetector
     std::vector<std::vector<cv::Point>> contourDetector::detectContours(cv::Mat image)
     {
         std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Vec4i> hierarchy;
-        cv::Mat cannyImage = imageFilter::applyCannyOperator(image);
-        findContours(cannyImage, contours, hierarchy, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
 
-        hierarchy.clear();
+        cv::Mat cannyImage = imageFilter::applyCannyOperator(image);
+        findContours(cannyImage, contours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
 
         if (contours.size() == 0)
         {
-            return contours; // здесь стоит бросать исключение
+            return contours;
         }
 
         auto mergedContours = contoursMerger::connectContours(contours, image.cols, image.rows);

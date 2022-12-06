@@ -1,5 +1,5 @@
 #include "opencv2/highgui.hpp"
-#include "EdgeDetector.h"
+#include "edgeDetector.h"
 #include "inversePerspectiveMapping.h"
 #include "contourDrawer.h"
 #include "contoursMerger.h"
@@ -69,6 +69,7 @@ void showFilteredVideo(std::string path)
         cvtColor(averageImage, frameWithLine, cv::COLOR_GRAY2BGR);
 
         cv::Point vanishingPoint = cv::Point(324, 190);
+        //cv::Point vanishingPoint = cv::Point(650, 412);
         double angle = 0;
         auto farthestVisiblePoint = EdgeDetector::edgeDetector::findFarthestVisiblePoint(mergedContours, vanishingPoint, &angle);
         EdgeDetector::contourDrawer::drawHorizontalLine(frameWithLine, farthestVisiblePoint);
@@ -76,18 +77,19 @@ void showFilteredVideo(std::string path)
         std::cout << 180 * acos(angle) / CV_PI;
         std::cout << farthestVisiblePoint;
         std::cout << '\n';
-
+        
         // IPM
+        //const int sizeX = 1280; // size of frame
+        //const int sizeY = 720;
         const int sizeX = 640; // size of frame
         const int sizeY = 360;
-        const int focalLengthX = 700;
-        const int focalLengthY = 700;
+        const int focalLength = 500;
         const int opticalCenterX = sizeX / 2;
         const int opticalCenterY = sizeY / 2;
-        const int cameraHeight = 1300; // camera height in mm
-        const double pitch = 20; // angle
+        const double cameraHeight = 1.3f;
+        const float pitch = atan(((float)vanishingPoint.y - (float)sizeY / 2) / (float)focalLength);
 
-        distanceEstimator::inversePerspectiveMapping ipm(sizeX, sizeY, focalLengthX, focalLengthY, opticalCenterX, opticalCenterY, cameraHeight, pitch);
+        distanceEstimator::inversePerspectiveMapping ipm(sizeX, sizeY, focalLength, opticalCenterX, opticalCenterY, cameraHeight, pitch);
         cv::Mat warpedImage = ipm.inversePerspectiveMap(frameWithLine, farthestVisiblePoint.y);
 
         cv::imshow("Warped image", warpedImage);

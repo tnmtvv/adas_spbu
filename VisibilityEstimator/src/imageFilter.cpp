@@ -6,9 +6,8 @@ namespace EdgeDetector
     {
         cv::Mat grayImage, blurGrayImage, resultImage;
 
-        //cvtColor(_frame, grayImage, COLOR_BGR2GRAY);
-        GaussianBlur(frame, blurGrayImage, cv::Size(5, 5), 1.4, 1.4, 1);
-        Canny(blurGrayImage, resultImage, 20, 30);
+        cv::GaussianBlur(frame, blurGrayImage, cv::Size(5, 5), 1.4, 1.4, 1);
+        cv::Canny(blurGrayImage, resultImage, 20, 30);
 
         return resultImage;
     }
