@@ -7,16 +7,22 @@ void KCFTracker::startTracking(const std::string &path, cv::Rect2d pedestrian, i
     capture = cv::VideoCapture(path);
     pedestrianBox = pedestrian;
     tracker = cv::TrackerKCF::create();
-    cv::Mat frame;
     for (int i = 0; i < nFrame; i++) { capture >> frame; }
     tracker->init(frame, pedestrianBox);
 }
 
-    cv::Rect2d KCFTracker::getNextPedestrianPosition() {
-    cv::Mat frame;
+cv::Rect2d KCFTracker::getNextPedestrianPosition() {
     capture >> frame;
     if (!tracker->update(frame, pedestrianBox)) {
         std::cout << "failed kcf tracking" << std::endl;
     }
     return pedestrianBox;
+}
+
+void KCFTracker::reinit(cv::Rect2d boundingBox) {
+    tracker->init(frame, boundingBox);
+    pedestrianBox = boundingBox;
+}
+
+void KCFTracker::denoise(cv::Mat frame) {
 }

@@ -10,13 +10,15 @@ class MyTracker : Tracker {
     std::vector<Tracker *> trackers;
     std::vector<double> weights;
     cv::VideoCapture capture;
-    std::map<Tracker*, double> weightOfTracker;
+    std::map<Tracker *, double> weightOfTracker;
 
     cv::Rect2d getMeanResult(std::vector<cv::Rect2d> &boundingBoxes);
 
 public:
 
     MyTracker();
+    //reinit every tracker by bounding box
+    void reinit(cv::Rect2d boundingBox);
 
     //tracker initialization. Path - path to video, bounding box, nFrame - number of frame where from tracking should start
     void startTracking(const std::string &path, cv::Rect2d pedestrian, int nFrame) override;

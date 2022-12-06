@@ -9,11 +9,14 @@ class KCFTracker : public Tracker {
     cv::VideoCapture capture;
     cv::Rect2i pedestrianBox;
     cv::Ptr<cv::TrackerKCF> tracker;
+    cv::Mat frame;
 
     void denoise(cv::Mat frame);
 
 public:
     KCFTracker();
+
+    void reinit(cv::Rect2d boundingBox) override;
 
     void startTracking(const std::string &path, cv::Rect2d pedestrian, int nFrame) override;
 

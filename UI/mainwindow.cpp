@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     state = WindowState::SLIDING;
     ui->setupUi(this);
     ui->horizontalSlider->setEnabled(true);
-    connect(ui->horizontalSlider, &QSlider::valueChanged, this, &MainWindow::onSliderValueChanged);
+    connect(ui->horizontalSlider, &QSlider::sliderMoved, this, &MainWindow::onSliderValueChanged);
     connect(ui->selectROI, &QPushButton::clicked, this, &MainWindow::onSelectROIClick);
     connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::onButtonClick);
 }
@@ -35,7 +35,6 @@ void MainWindow::onSelectROIClick() {
 }
 
 void MainWindow::onSliderValueChanged() {
-    std::cout << ui->horizontalSlider->value() << std::endl;
     QImage img = getImageByIndex(ui->horizontalSlider->value());
     setImageToLabel(img);
 }
@@ -57,7 +56,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
                 state = WindowState::TRACKING;
                 ui->horizontalSlider->setEnabled(false);
             }
-            std::cout << "!!!" << std::endl;
             break;
     }
 }
@@ -78,8 +76,10 @@ void MainWindow::showTracking(int nFrame) {
         if (state == WindowState::TRACKING) {
             box = tracker.getNextPedestrianPosition();
             capture >> frame;
+            nFrame++;
             rectangle(frame, box, cv::Scalar(0, 255, 0), 5);
             setImageToLabel(convertOpenCVImageToQt(frame));
+            ui->horizontalSlider->setValue(nFrame);
         }
         int keyboard = waitKey(30);
         if (keyboard == 'q' || keyboard == 27)
@@ -99,7 +99,6 @@ QImage MainWindow::convertOpenCVImageToQt(const cv::Mat &frame) {
 bool MainWindow::setPathToVideo(const string &pathToVideo) {
     capture = VideoCapture(pathToVideo);
     if (!capture.isOpened()) {
-        cerr << "Unable to open file!" << endl;
         return false;
     }
     path = pathToVideo;

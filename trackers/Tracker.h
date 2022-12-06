@@ -9,6 +9,8 @@ public:
 
     virtual cv::Rect2d getNextPedestrianPosition() = 0;
 
+    virtual void reinit(cv::Rect2d boundingBox) = 0;
+
     Tracker();
 
 };

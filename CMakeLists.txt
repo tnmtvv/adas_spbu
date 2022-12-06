@@ -42,7 +42,7 @@ else()
     trackers/TLDTracker.h
     trackers/GOTURNTracker.cpp
     trackers/GOTURNTracker.h
-          UI/WindowState.h UI/BoundingBoxWidget.cpp UI/BoundingBoxWidget.h)
+          UI/WindowState.h UI/BoundingBoxWidget.cpp UI/BoundingBoxWidget.h trackers/consts.h)
 endif()
 
 find_package( OpenCV REQUIRED )
