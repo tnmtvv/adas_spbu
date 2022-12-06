@@ -18,18 +18,18 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 if(ANDROID)
   add_library(Tracking SHARED
     main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+          UI/mainwindow.cpp
+          UI/mainwindow.h
+          UI/mainwindow.ui
   )
 else()
   add_executable(Tracking
     main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
-    MyTracker.cpp
-    MyTracker.h
+          UI/mainwindow.cpp
+          UI/mainwindow.h
+          UI/mainwindow.ui
+          trackers/MyTracker.cpp
+          trackers/MyTracker.h
     trackers/Tracker.cpp
     trackers/Tracker.h
     trackers/OpticalFlowTracker.cpp
@@ -38,7 +38,11 @@ else()
     trackers/KCFTracker.h
     trackers/CSRTTracker.cpp
     trackers/CSRTTracker.h
-          WindowState.h)
+    trackers/TLDTracker.cpp
+    trackers/TLDTracker.h
+    trackers/GOTURNTracker.cpp
+    trackers/GOTURNTracker.h
+          UI/WindowState.h UI/BoundingBoxWidget.cpp UI/BoundingBoxWidget.h)
 endif()
 
 find_package( OpenCV REQUIRED )

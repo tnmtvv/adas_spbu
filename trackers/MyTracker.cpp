@@ -2,20 +2,32 @@
 #include "trackers/OpticalFlowTracker.h"
 #include "trackers/KCFTracker.h"
 #include "trackers/CSRTTracker.h"
+#include "trackers/TLDTracker.h"
+#include "trackers/GOTURNTracker.h"
 #include <vector>
 #include <numeric>
 #include <iostream>
 
 MyTracker::MyTracker() {
+    weightOfTracker.clear();
+    trackers.clear();
     Tracker *opticalFlowTracker = new OpticalFlowTracker();
     Tracker *kcfTracker = new KCFTracker();
     Tracker *csrtTracker = new CSRTTracker();
+    Tracker *tldTracker = new TLDTracker();
+    Tracker *goturnTracker = new GOTURNTracker();
+
     trackers.push_back(opticalFlowTracker);
     trackers.push_back(kcfTracker);
     trackers.push_back(csrtTracker);
+    trackers.push_back(tldTracker);
+//    trackers.push_back(goturnTracker);
+
     weights.push_back(1);
-    weights.push_back(0);
     weights.push_back(1);
+    weights.push_back(1);
+    weights.push_back(1);
+//    weights.push_back(1);
 }
 
 cv::Rect2d MyTracker::getMeanResult(std::vector<cv::Rect2d> &boundingBoxes) {
@@ -33,7 +45,7 @@ cv::Rect2d MyTracker::getMeanResult(std::vector<cv::Rect2d> &boundingBoxes) {
     return cv::Rect2d(avgCenter, cv::Size(avgParams.x, avgParams.y));
 }
 
-const cv::Rect2d MyTracker::getNextPedestrianPosition() {
+    cv::Rect2d MyTracker::getNextPedestrianPosition() {
     std::vector<cv::Rect2d> boundingBoxes;
     for (auto tracker: trackers) {
         boundingBoxes.push_back(tracker->getNextPedestrianPosition());

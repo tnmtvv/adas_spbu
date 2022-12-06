@@ -46,7 +46,7 @@ void OpticalFlowTracker::startTracking(const std::string& path, Rect2d pedestria
     goodFeaturesToTrack(oldGray(pedestrianBox), oldFeatures, featuresCount, 0.3, 7, Mat(), 7, false, 0.04);
 }
 
-const Rect2d OpticalFlowTracker::getNextPedestrianPosition() {
+    Rect2d OpticalFlowTracker::getNextPedestrianPosition() {
     Mat newFrame, newGray;
     capture >> newFrame;
     cvtColor(newFrame, newGray, COLOR_BGR2GRAY);

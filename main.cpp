@@ -1,10 +1,5 @@
-#include "mainwindow.h"
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/videoio.hpp>
+#include "UI/mainwindow.h"
 #include <iostream>
-#include "MyTracker.h"
 #include <QApplication>
 
 using namespace cv;
@@ -18,6 +13,10 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     w.show();
-    w.showTracking(argv[1]);
+    if (w.setPathToVideo(argv[1])) {
+        w.showFirstImage();
+    } else {
+        cerr << "Unable to open file!" << endl;
+    }
     return a.exec();
 }

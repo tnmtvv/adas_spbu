@@ -20,7 +20,7 @@ class OpticalFlowTracker : public Tracker {
 public:
     OpticalFlowTracker();
     void startTracking(const std::string& path, cv::Rect2d pedestrian, int nFrame) override;
-    const cv::Rect2d getNextPedestrianPosition() override;
+    cv::Rect2d getNextPedestrianPosition() override;
 };
 
 

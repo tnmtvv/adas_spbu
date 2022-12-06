@@ -1,8 +1,9 @@
 # This file is used to ignore files which are generated
 # ----------------------------------------------------------------------------
 
-/videos
 СMakeLists.txt.user
+
+/videos
 /.idea
 /cmake-build-debug
 /cmake-build-release

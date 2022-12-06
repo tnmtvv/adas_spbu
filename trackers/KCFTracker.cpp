@@ -12,7 +12,7 @@ void KCFTracker::startTracking(const std::string &path, cv::Rect2d pedestrian, i
     tracker->init(frame, pedestrianBox);
 }
 
-const cv::Rect2d KCFTracker::getNextPedestrianPosition() {
+    cv::Rect2d KCFTracker::getNextPedestrianPosition() {
     cv::Mat frame;
     capture >> frame;
     if (!tracker->update(frame, pedestrianBox)) {
