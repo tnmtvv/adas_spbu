@@ -5,6 +5,8 @@ Makefile
 *.caffemodel
 adas_spbu
 /build
+*.xml
+*.example
 
 # Prerequisites
 *.d
