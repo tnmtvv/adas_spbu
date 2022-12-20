@@ -35,3 +35,6 @@ make
 
 ## Authors
 [@Grigory-Aseev](https://github.com/Grigory-Aseev)
+
+## License
+Source code of this repository is released under the [MIT license](https://choosealicense.com/licenses/mit/)
