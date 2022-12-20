@@ -6,9 +6,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+
 find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
+find_package( OpenPose REQUIRED )
+find_package( Threads REQUIRED )
 
-add_executable(${PROJECT_NAME} main.cpp)
+include_directories( ${OpenCV_INCLUDE_DIRS} ${OpenPose_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+add_executable(${PROJECT_NAME} main.cpp src/falsePositiveFilter.hpp src/falsePositiveFilter.cpp )
+
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${OpenPose_LIBS})
