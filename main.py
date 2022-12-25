@@ -84,7 +84,7 @@ def create_lidar_image_lists(path_to_lidar: str, path_to_images: str):
 
     len_list = len(list_lidar)
 
-    # return list_lidar[int(len_list/2)-5:], list_images[int(len_list/2)-5:]
+    # return list_lidar[int(len_list / 2) - 5:int(len_list / 2) + 10], list_images[int(len_list / 2) - 5:int(len_list / 2) + 10]
     return list_lidar, list_images
 
 
@@ -96,7 +96,8 @@ def find_left_right(inlier_points):
 def ransac_segmentation(list_pcds, distance_threshold=0.4):
     list_outliers = []
     list_inliers = []
-    list_masks = []
+    list_indices = []
+    list_cropped_pcds = []
 
     for pcd in list_pcds:
         plane_model, inliers = pcd.segment_plane(distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000)
@@ -104,25 +105,20 @@ def ransac_segmentation(list_pcds, distance_threshold=0.4):
         inlier_cloud = pcd.select_by_index(inliers)
         outlier_cloud = pcd.select_by_index(inliers, invert=True)
 
+        list_indices.append(inliers)
+        list_outliers.append(outlier_cloud)
+        list_inliers.append(inlier_cloud)
+
         left_bound, right_bound = find_left_right(list(inlier_cloud.points))
 
         cur_outlier_points = np.array(outlier_cloud.points).tolist()
         outlier_points = list(filter(lambda x: (left_bound <= x[1] <= right_bound).all(axis=0), cur_outlier_points))
-        outlier_cloud.points = o3d.utility.Vector3dVector(outlier_points)
 
-        merged_cloud = outlier_cloud + inlier_cloud
-        plane_model, inliers = merged_cloud.segment_plane(distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000)
+        cropped_outlier = o3d.geometry.PointCloud()
+        cropped_outlier.points = o3d.utility.Vector3dVector(outlier_points)
+        list_cropped_pcds.append(cropped_outlier)
 
-        inlier_cloud = merged_cloud.select_by_index(inliers)
-        outlier_cloud = merged_cloud.select_by_index(inliers, invert=True)
-        mask = np.ones(len(merged_cloud.points), np.bool)
-        mask[inliers] = 0
-
-        list_outliers.append(outlier_cloud)
-        list_inliers.append(inlier_cloud)
-        list_masks.append(np.asarray(mask))
-
-    return list_outliers, list_inliers, list_masks
+    return list_outliers, list_inliers, list_cropped_pcds, list_indices
 
 
 def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
@@ -168,17 +164,16 @@ def main(path_to_lidar: str, path_to_images: str,
 
     ga = My_GA(num_shots_to_optimise, fitness_function, generation_goal, population_size)
     ga.chromosome_length = 2
-    ga.pcds_outliers, ga.pcds_inliers, list_masks = ransac_segmentation(pcds, 0.125)
+    outliers, ga.pcds_inliers, cropped_outliers, inliers_indx = ransac_segmentation(pcds, 0.125)
 
     clusters_indices = []
     dicts_label_color = []
 
     for i, inlier in enumerate(ga.pcds_inliers):
         plane_equation = Plane.get_equation(inlier.points)
-        print(plane_equation)
         points_projected = []
 
-        for point in ga.pcds_outliers[i].points:
+        for point in cropped_outliers[i].points:
             projection = point - (np.dot(plane_equation[:-1], point) + plane_equation[-1]) * plane_equation[:-1]
             points_projected.append(projection)
         pcd_projected = o3d.geometry.PointCloud()
@@ -194,35 +189,35 @@ def main(path_to_lidar: str, path_to_images: str,
     ga.crossover_population_impl = Crossover.Population.random
     ga.mutation_population_impl = Mutation.Population.random_avoid_best
     ga.fitness_function_impl = ga.fitting_function
-    ga.gene_mutation_rate = 0.005
+    ga.gene_mutation_rate = 0.1
 
-    while ga.active():
-        ga.evolve(1)
-        if verbose:
-            print('------------------------------')
-            ga.print_population()
-            ga.print_best_chromosome()
-            ga.print_worst_chromosome()
-            print('------------------------------')
+    # while ga.active():
+    #     ga.evolve(1)
+    #     if verbose:
+    #         print('------------------------------')
+    #         ga.print_population()
+    #         ga.print_best_chromosome()
+    #         ga.print_worst_chromosome()
+    #         print('------------------------------')
+    #
+    # best_params = ga.population[0]
 
-    best_params = ga.population[0]
-
-    for i, pcd in enumerate(zip(ga.pcds_outliers, ga.pcds_inliers)):
+    for i, pcd in enumerate(zip(outliers, ga.pcds_inliers)):
         cur_pcd_clusters = []
         cur_label_color = {}
 
         pcd_outlier, pcd_inlier = pcd
         # o3d.visualization.draw_geometries([pcd_outlier])
 
-        clustering = skc.DBSCAN(eps=best_params[0].value, min_samples=best_params[1].value).fit(np.asarray(pcd_outlier.points))
-        # clustering = skc.DBSCAN(eps=0.9, min_samples=6).fit(
-        #      np.asarray(pcd_outlier.points))
+        # clustering = skc.DBSCAN(eps=best_params[0].value, min_samples=best_params[1].value).fit(np.asarray(pcd_outlier.points))
+        clustering = skc.DBSCAN(eps=2, min_samples=10).fit(
+             np.asarray(pcd_outlier.points))
         labels = clustering.labels_
         unique_labels = np.unique(labels)
         set_colors = set()
 
-        merged_pcd = pcd_inlier + pcd_outlier
-        colors = np.zeros(np.shape(merged_pcd.points))
+        # merged_pcd = pcd_inlier + pcd_outlier
+        # colors = np.zeros(np.shape(merged_pcd.points))
 
         colors_outlier = np.zeros(np.shape(pcd_outlier.points))
 
@@ -248,13 +243,12 @@ def main(path_to_lidar: str, path_to_images: str,
         pcd_outlier.colors = o3d.utility.Vector3dVector(colors_outlier)
         pcd_inlier.paint_uniform_color([0, 0, 0])
 
-        merged_pcd_1 = pcd_outlier + pcd_inlier
-        # o3d.visualization.draw_geometries([pcd_outlier])
+        merged_pcd = pcd_inlier + pcd_outlier
 
         if mode == 1:  # only point clouds
-            o3d.visualization.draw_geometries([merged_pcd_1])
+            o3d.visualization.draw_geometries([merged_pcd])
             # if_dists = int(input("show distances"))
-            #
+
             # if if_dists:
             #     dists, pair_clusters = separate_all_clusters(merged_pcd_1, unique_labels, cur_label_color,
             #                                                  cur_pcd_clusters)
@@ -262,12 +256,20 @@ def main(path_to_lidar: str, path_to_images: str,
             #         print(dists[j])
             #         o3d.visualization.draw_geometries([pair])
 
-        elif mode == 2: # mapped images
+        elif mode == 2:  # mapped images
+            colors = np.zeros(np.shape(pcds[i].colors))
+            mask = np.ones(len(pcds[i].colors), dtype=np.bool)
+            mask[inliers_indx[i]] = 0
+            colors[inliers_indx[i]] = [0, 0, 0]
+            colors[mask] = colors_outlier
+
             mapped_images = []
             images = extract_images(list_images)
 
+            o3d.visualization.draw_geometries([merged_pcd])
             cur_image = AUDIMethods.map_lidar_points_onto_image(images[i], lidars[i], colors)
             mapped_images.append(cur_image)
+
             # o3d.visualization.draw_geometries([merged_pcd_1])
 
             plt.fig = plt.figure(figsize=(20, 20))
@@ -275,22 +277,19 @@ def main(path_to_lidar: str, path_to_images: str,
             plt.axis('off')
             plt.close()
         elif mode == 3:  # with editing
-            colors[list_masks[i]] = colors_outlier
-
             vis = o3d.visualization.VisualizerWithEditing()
             vis.create_window()
-            vis.add_geometry(merged_pcd_1)
+            vis.add_geometry(merged_pcd)
             vis.run()  # user picks points
             vis.destroy_window()
             picked_points = vis.get_picked_points()
 
-            mismatched_points = merged_pcd_1.select_by_index(picked_points)
+            mismatched_points = merged_pcd.select_by_index(picked_points)
 
             dists = pcd_inlier.compute_point_cloud_distance(mismatched_points)
             dists = np.asarray(dists)
             min_dist = np.min(dists)
             print(min_dist)
-
 
 
 if __name__ == '__main__':
