@@ -1,24 +1,20 @@
 import argparse
-import ast
 import os.path
 import random
-from copy import copy
-
-from EasyGA.mutation import Mutation
-from AUDI_methods import AUDIMethods
-from os.path import join
+import cv2
 import glob
+
 import numpy as np
 import open3d as o3d
-from EasyGA.crossover import Crossover
-from sklearn import cluster as skc
-from sklearn import metrics
-from matplotlib import pyplot as plt
-import EasyGA
-from Custom_GA import My_GA
-import cv2
 
+from AUDI_methods import AUDIMethods
+from EasyGA.mutation import Mutation
+from EasyGA.crossover import Crossover
+from Custom_GA import My_GA
 from Plane import Plane
+from sklearn import cluster as skc
+from copy import copy
+from matplotlib import pyplot as plt
 
 
 def run_algo(pcd):
@@ -72,7 +68,7 @@ def extract_images(images_path_list):
     return images_list
 
 
-def create_lidar_image_lists(path_to_lidar: str, path_to_images: str):
+def create_lidar_image_lists(path_to_lidar: str, path_to_images: str, indx_from=0, indx_to=0):
     lidar_files = os.listdir(path_to_lidar)
     images_files = glob.glob(path_to_images + '/*.png')
 
@@ -82,10 +78,11 @@ def create_lidar_image_lists(path_to_lidar: str, path_to_images: str):
     list_lidar = list(map(lambda x: os.path.join(path_to_lidar, x), lidar_files))
     list_images = list(map(lambda x: os.path.join(path_to_images, x), images_files))
 
-    len_list = len(list_lidar)
+    if indx_to == indx_from:
+        indx_from = 0
+        indx_to = len(list_lidar)
 
-    # return list_lidar[int(len_list / 2) - 5:int(len_list / 2) + 10], list_images[int(len_list / 2) - 5:int(len_list / 2) + 10]
-    return list_lidar, list_images
+    return list_lidar[indx_from: indx_to], list_images[indx_from: indx_to]
 
 
 def find_left_right(inlier_points):
@@ -96,8 +93,8 @@ def find_left_right(inlier_points):
 def ransac_segmentation(list_pcds, distance_threshold=0.4):
     list_outliers = []
     list_inliers = []
-    list_indices = []
     list_cropped_pcds = []
+    list_indices = []
 
     for pcd in list_pcds:
         plane_model, inliers = pcd.segment_plane(distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000)
@@ -105,9 +102,9 @@ def ransac_segmentation(list_pcds, distance_threshold=0.4):
         inlier_cloud = pcd.select_by_index(inliers)
         outlier_cloud = pcd.select_by_index(inliers, invert=True)
 
-        list_indices.append(inliers)
         list_outliers.append(outlier_cloud)
         list_inliers.append(inlier_cloud)
+        list_indices.append(inliers)
 
         left_bound, right_bound = find_left_right(list(inlier_cloud.points))
 
@@ -126,8 +123,7 @@ def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
     clusters_dists = []
     pcd.paint_uniform_color([0, 0, 0])
 
-    #filter from < 0
-    labels_filtered = list(filter(lambda x: x >= 0, labels))
+    labels_filtered = list(filter(lambda x: x >= 0, labels))  # filter from x < 0
 
     for i, label_1 in enumerate(labels_filtered):
         for j, label_2 in enumerate(labels_filtered[i + 1:]):
@@ -153,10 +149,13 @@ def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
     return clusters_dists, clusters_pcds
 
 
-def main(path_to_lidar: str, path_to_images: str,
-         num_shots_to_optimise: int, generation_goal: int, population_size: int, fitness_function: int, mode: int, verbose=False):
+def main(path_to_lidar: str, path_to_images: str, start_indx: int,
+         num_shots_to_optimise: int, default: int, generation_goal:
+        int, population_size: int, fitness_function: int, mode: int, verbose=False):
 
-    list_lidar, list_images = create_lidar_image_lists(path_to_lidar, path_to_images)
+    list_lidar, list_images = create_lidar_image_lists(path_to_lidar, path_to_images, start_indx,
+                                                       start_indx + num_shots_to_optimise)
+
     if num_shots_to_optimise == 0:
         num_shots_to_optimise = len(list_lidar)
 
@@ -164,6 +163,8 @@ def main(path_to_lidar: str, path_to_images: str,
 
     ga = My_GA(num_shots_to_optimise, fitness_function, generation_goal, population_size)
     ga.chromosome_length = 2
+    best_params = (2, 10)
+
     outliers, ga.pcds_inliers, cropped_outliers, inliers_indx = ransac_segmentation(pcds, 0.125)
 
     clusters_indices = []
@@ -191,33 +192,27 @@ def main(path_to_lidar: str, path_to_images: str,
     ga.fitness_function_impl = ga.fitting_function
     ga.gene_mutation_rate = 0.1
 
-    # while ga.active():
-    #     ga.evolve(1)
-    #     if verbose:
-    #         print('------------------------------')
-    #         ga.print_population()
-    #         ga.print_best_chromosome()
-    #         ga.print_worst_chromosome()
-    #         print('------------------------------')
-    #
-    # best_params = ga.population[0]
+    if default == 0:
+        while ga.active():
+            ga.evolve(1)
+            if verbose:
+                print('------------------------------')
+                ga.print_population()
+                ga.print_best_chromosome()
+                ga.print_worst_chromosome()
+                print('------------------------------')
+
+        best_params = ga.population[0].gene_value_list
 
     for i, pcd in enumerate(zip(outliers, ga.pcds_inliers)):
         cur_pcd_clusters = []
         cur_label_color = {}
 
         pcd_outlier, pcd_inlier = pcd
-        # o3d.visualization.draw_geometries([pcd_outlier])
-
-        # clustering = skc.DBSCAN(eps=best_params[0].value, min_samples=best_params[1].value).fit(np.asarray(pcd_outlier.points))
-        clustering = skc.DBSCAN(eps=2, min_samples=10).fit(
-             np.asarray(pcd_outlier.points))
+        clustering = skc.DBSCAN(eps=best_params[0], min_samples=best_params[1]).fit(np.asarray(pcd_outlier.points))
         labels = clustering.labels_
         unique_labels = np.unique(labels)
         set_colors = set()
-
-        # merged_pcd = pcd_inlier + pcd_outlier
-        # colors = np.zeros(np.shape(merged_pcd.points))
 
         colors_outlier = np.zeros(np.shape(pcd_outlier.points))
 
@@ -227,7 +222,7 @@ def main(path_to_lidar: str, path_to_images: str,
             else:
                 cur_indices = np.where(labels == label)[0].tolist()
                 cur_color = plt.get_cmap("prism")(random.randint(1, 1000))[:3]
-                while(cur_color in set_colors):
+                while cur_color in set_colors:
                     cur_color = plt.get_cmap("prism")(random.randint(1, 1000))[:3]
                 set_colors.add(cur_color)
                 cur_label_color[label] = cur_color
@@ -238,8 +233,6 @@ def main(path_to_lidar: str, path_to_images: str,
         clusters_indices.append(cur_pcd_clusters)
         dicts_label_color.append(cur_label_color)
 
-        # colors_outlier = np.zeros(np.shape(pcd_outlier.points))
-
         pcd_outlier.colors = o3d.utility.Vector3dVector(colors_outlier)
         pcd_inlier.paint_uniform_color([0, 0, 0])
 
@@ -247,18 +240,19 @@ def main(path_to_lidar: str, path_to_images: str,
 
         if mode == 1:  # only point clouds
             o3d.visualization.draw_geometries([merged_pcd])
-            # if_dists = int(input("show distances"))
+        if mode == 2:  # point clouds with distances
+            o3d.visualization.draw_geometries([merged_pcd])
+            if_dists = int(input("show distances"))
 
-            # if if_dists:
-            #     dists, pair_clusters = separate_all_clusters(merged_pcd_1, unique_labels, cur_label_color,
-            #                                                  cur_pcd_clusters)
-            #     for j, pair in enumerate(pair_clusters):
-            #         print(dists[j])
-            #         o3d.visualization.draw_geometries([pair])
-
-        elif mode == 2:  # mapped images
+            if if_dists:
+                dists, pair_clusters = separate_all_clusters(merged_pcd, unique_labels, cur_label_color,
+                                                             cur_pcd_clusters)
+                for j, pair in enumerate(pair_clusters):
+                    print(dists[j])
+                    o3d.visualization.draw_geometries([pair])
+        elif mode == 3:  # mapped images
             colors = np.zeros(np.shape(pcds[i].colors))
-            mask = np.ones(len(pcds[i].colors), dtype=np.bool)
+            mask = np.ones(len(pcds[i].colors), dtype=bool)
             mask[inliers_indx[i]] = 0
             colors[inliers_indx[i]] = [0, 0, 0]
             colors[mask] = colors_outlier
@@ -266,17 +260,14 @@ def main(path_to_lidar: str, path_to_images: str,
             mapped_images = []
             images = extract_images(list_images)
 
-            o3d.visualization.draw_geometries([merged_pcd])
             cur_image = AUDIMethods.map_lidar_points_onto_image(images[i], lidars[i], colors)
             mapped_images.append(cur_image)
-
-            # o3d.visualization.draw_geometries([merged_pcd_1])
 
             plt.fig = plt.figure(figsize=(20, 20))
             plt.imshow(cur_image)
             plt.axis('off')
             plt.close()
-        elif mode == 3:  # with editing
+        elif mode == 4:  # with editing
             vis = o3d.visualization.VisualizerWithEditing()
             vis.create_window()
             vis.add_geometry(merged_pcd)
@@ -302,9 +293,14 @@ if __name__ == '__main__':
     parser.add_argument(
         "images_path", type=str, help="Directory where main information files are stored"
     )
-
+    parser.add_argument(
+        "start_indx", type=int, help="Start index"
+    )
     parser.add_argument(
         "num_of_shots", type=int, help="Number of shots to optimise"
+    )
+    parser.add_argument(
+        "default", type=int, help="Use default parameters or not"
     )
     parser.add_argument(
         "generation_goal", type=int, help="Number of generations in GA"
@@ -317,7 +313,8 @@ if __name__ == '__main__':
                                            "1 -- silhouette score, 2 -- davies-bouldin score, 3 -- calinski-harabasz"
     )
     parser.add_argument(
-        "mode", type=int, help="Choose the mode: 1 -- point clouds, 2 -- mapped images, 3 -- with editing"
+        "mode", type=int, help="Choose the mode: 1 -- point clouds, 2 -- point clouds with distances, "
+                               "3 -- mapped images, 4 -- with editing"
     )
     parser.add_argument(
         "verbose", type=bool, help="Print information for each generation"
@@ -328,7 +325,9 @@ if __name__ == '__main__':
     main(
         args.lidar_path,
         args.images_path,
+        args.start_indx,
         args.num_of_shots,
+        args.default,
         args.generation_goal,
         args.population_size,
         args.fitness_function,
