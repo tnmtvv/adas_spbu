@@ -24,3 +24,5 @@ population_size     Number of chromosomes in generation
 verbose             print side info or not
 
 ```
+
+[![GitHub Super-Linter](https://github.com/tnmtvv/adas_spbu/workflows/Lint%20Code%20Base/badge.svg)](https://github.com/marketplace/actions/super-linter)
