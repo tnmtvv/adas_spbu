@@ -1,8 +1,8 @@
 import numpy as np
 import open3d
-
 from EasyGA import GA
-from sklearn import metrics, cluster as skc
+from sklearn import cluster as skc
+from sklearn import metrics
 from typing import List
 
 
