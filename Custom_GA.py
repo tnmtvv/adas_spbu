@@ -1,5 +1,6 @@
-import numpy as np
 import open3d
+
+import numpy as np
 
 from typing import List
 from EasyGA import GA
