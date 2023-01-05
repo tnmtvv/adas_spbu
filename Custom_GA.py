@@ -16,17 +16,19 @@ class MyGA(GA):
         self.num_of_shots = num_of_shots
         self.fitness_funcion_num = fitness_function
 
-
     def fitting_function(self, chromosome):
+        silhouette = 1
+        davies_bouldin = 2
+        calinski_harabasz = 3
+        
         scores = []
-
         for cloud in self.pcds_cropped_outliers:
             points = np.asarray(cloud.points)
             clustering = \
                 skc.DBSCAN(eps=chromosome[0].value, min_samples=chromosome[1].value).fit(points)
             num_of_clusters = len(np.unique(np.asarray(clustering.labels_)))
 
-            if self.fitness_funcion_num == 1:   # silhouette
+            if self.fitness_funcion_num == silhouette:
                 self.target_fitness_type = 'max'
 
                 if num_of_clusters < 20:
@@ -35,7 +37,7 @@ class MyGA(GA):
                     fitness = float(metrics.silhouette_score(points, clustering.labels_))
                 scores.append(fitness)
 
-            elif self.fitness_funcion_num == 2:  # davies-bouldin
+            elif self.fitness_funcion_num == davies_bouldin:
                 self.target_fitness_type = 'min'
                 davies_bouldin_score = float(metrics.davies_bouldin_score(points, clustering.labels_))
 
@@ -45,7 +47,7 @@ class MyGA(GA):
                     fitness = davies_bouldin_score
                 scores.append(fitness)
 
-            elif self.fitness_funcion_num == 3:  # calinski-harabasz
+            elif self.fitness_funcion_num == calinski_harabasz:
                 self.target_fitness_type = 'max'
                 calinski_harabasz_score = float(metrics.calinski_harabasz_score(points, clustering.labels_))
 
