@@ -1,10 +1,10 @@
+import numpy as np
+import open3d
+
 from typing import List
 from EasyGA import GA
 from sklearn import cluster as skc
 from sklearn import metrics
-
-import numpy as np
-import open3d
 
 
 class MyGA(GA):
