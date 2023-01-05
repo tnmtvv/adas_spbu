@@ -1,16 +1,19 @@
-import numpy as np
+from typing import List
 from EasyGA import GA
 from sklearn import cluster as skc
 from sklearn import metrics
+
+import numpy as np
+import open3d
 
 
 class MyGA(GA):
 
     def __init__(self, num_of_shots: int, fitness_function: int, num_generation: int, num_population: int):
         GA.__init__(self)
-        self.pcds_inliers = []
-        self.pcds_projected_outliers = []
-        self.pcds_cropped_outliers = []
+        self.pcds_inliers: List[open3d.geometry.PointCloud] = []
+        self.pcds_projected_outliers: List[open3d.geometry.PointCloud] = []
+        self.pcds_cropped_outliers: List[open3d.geometry.PointCloud] = []
         self.generation_goal = num_generation
         self.population_size = num_population
         self.num_of_shots = num_of_shots
@@ -20,7 +23,7 @@ class MyGA(GA):
         silhouette = 1
         davies_bouldin = 2
         calinski_harabasz = 3
-        
+
         scores = []
         for cloud in self.pcds_cropped_outliers:
             points = np.asarray(cloud.points)
