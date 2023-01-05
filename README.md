@@ -10,7 +10,7 @@ Genetic Algorithm was chosen for the project as a new and perspective way for op
 fitness function is based on existing [clustering metrics](https://scikit-learn.org/stable/modules/clustering.html)
 
 
-# Example of usage
+## Example of usage
 ```python
 Chooses best hyperparameters
 
