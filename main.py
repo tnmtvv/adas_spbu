@@ -1,17 +1,20 @@
 import argparse
-import copy
 import random
+from typing import Set
 
 import loader
+import copy
 import MyUtils
+
 import numpy as np
 import open3d as o3d
+
 from AUDI_methods import AUDIMethods
-from Custom_GA import MyGA
-from EasyGA.crossover import Crossover
 from EasyGA.mutation import Mutation
-from matplotlib import pyplot as plt
+from EasyGA.crossover import Crossover
+from Custom_GA import MyGA
 from sklearn import cluster as skc
+from matplotlib import pyplot as plt
 
 
 def ransac_segmentation(list_pcds, distance_threshold=0.4):
@@ -21,9 +24,7 @@ def ransac_segmentation(list_pcds, distance_threshold=0.4):
     list_indices = []
 
     for pcd in list_pcds:
-        plane_model, inliers = pcd.segment_plane(
-            distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000
-        )
+        plane_model, inliers = pcd.segment_plane(distance_threshold=distance_threshold, ransac_n=3, num_iterations=1000)
 
         inlier_cloud = pcd.select_by_index(inliers)
         outlier_cloud = pcd.select_by_index(inliers, invert=True)
@@ -32,10 +33,7 @@ def ransac_segmentation(list_pcds, distance_threshold=0.4):
         list_inliers.append(inlier_cloud)
         list_indices.append(inliers)
 
-        left_bound, right_bound = (
-            np.min(np.asarray(inlier_cloud.points)[:, 1]),
-            np.max(np.asarray(inlier_cloud.points)[:, 1]),
-        )
+        left_bound, right_bound = (np.min(np.asarray(inlier_cloud.points)[:, 1]), np.max(np.asarray(inlier_cloud.points)[:, 1]))
 
         cur_outlier_points = np.array(outlier_cloud.points)
         mask = np.zeros(len(cur_outlier_points), dtype=bool)
@@ -47,6 +45,7 @@ def ransac_segmentation(list_pcds, distance_threshold=0.4):
         cropped_outlier = o3d.geometry.PointCloud()
         cropped_outlier.points = o3d.utility.Vector3dVector(outlier_points)
         list_cropped_outliers.append(cropped_outlier)
+
     return list_outliers, list_inliers, list_cropped_outliers, list_indices
 
 
@@ -58,7 +57,7 @@ def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
     labels_filtered = list(filter(lambda x: x >= 0, labels))  # filter from x < 0
 
     for i, label_1 in enumerate(labels_filtered):
-        for j, label_2 in enumerate(labels_filtered[i + 1 :]):
+        for j, label_2 in enumerate(labels_filtered[i + 1:]):
             new_pcd = copy.deepcopy(pcd)
             cur_color_1 = hm_lables_colors[label_1]
             cur_color_2 = hm_lables_colors[label_2]
@@ -81,43 +80,29 @@ def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
     return clusters_dists, clusters_pcds
 
 
-def main(
-    path_to_lidar: str,
-    path_to_images: str,
-    start_indx: int,
-    num_shots_to_optimise: int,
-    default: bool,
-    generation_goal: int,
-    population_size: int,
-    fitness_function: int,
-    mode: int,
-    verbose=False,
-):
+def main(path_to_lidar: str, path_to_images: str, start_indx: int,
+         num_shots_to_optimise: int, default: bool, generation_goal: int,
+         population_size: int, fitness_function: int, mode: int, verbose=False):
+
     best_params_dbscan = (0.58, 5)
     best_params_ransac = 0.125
     images = []
 
-    list_lidar, list_images = loader.create_lidar_image_lists(
-        path_to_lidar, path_to_images, start_indx, start_indx + num_shots_to_optimise
-    )
+    list_lidar, list_images = loader.create_lidar_image_lists(path_to_lidar, path_to_images, start_indx,
+                                                       start_indx + num_shots_to_optimise)
 
     if mode == 3:
         images = loader.extract_images(list_images)
+
     if num_shots_to_optimise == -1:
         num_shots_to_optimise = len(list_lidar)
-    pcds, lidars = loader.build_point_clouds_and_lidars(
-        list_lidar, num_shots_to_optimise
-    )
+
+    pcds, lidars = loader.build_point_clouds_and_lidars(list_lidar, num_shots_to_optimise)
 
     ga = MyGA(num_shots_to_optimise, fitness_function, generation_goal, population_size)
     ga.chromosome_length = 2  # number of parameters to optimize
 
-    (
-        outliers,
-        ga.pcds_inliers,
-        ga.pcds_cropped_outliers,
-        inliers_indx,
-    ) = ransac_segmentation(pcds, best_params_ransac)
+    outliers, ga.pcds_inliers, ga.pcds_cropped_outliers, inliers_indx = ransac_segmentation(pcds, best_params_ransac)
     # getting pcds without road, road, above road area and road points indices
 
     clusters_indices = []
@@ -125,33 +110,30 @@ def main(
 
     for i, inlier in enumerate(ga.pcds_inliers):
         projected_pcd = MyUtils.get_projection(inlier, ga.pcds_cropped_outliers[i])
-        ga.pcds_projected_outliers.append(
-            projected_pcd
-        )  # getting projected on road pcds
-    ga.chromosome_impl = lambda: [random.uniform(0.1, 3), random.randrange(5, 15)]
+        ga.pcds_projected_outliers.append(projected_pcd)  # getting projected on road pcds
 
-    ga.crossover_population_impl = (
-        Crossover.Population.random
-    )  # setting ga configuration
+    ga.chromosome_impl = lambda: [
+        random.uniform(0.1, 3),
+        random.randrange(5, 15)
+    ]
+
+    ga.crossover_population_impl = Crossover.Population.random  # setting ga configuration
     ga.mutation_population_impl = Mutation.Population.random_avoid_best
     ga.fitness_function_impl = ga.fitting_function
     ga.gene_mutation_rate = 0.2
 
     if not default:  # choose parameters with ga or use default ones
         best_params_dbscan = ga.ga_run(verbose)
-    for i, pcd in enumerate(
-        zip(outliers, ga.pcds_inliers)
-    ):  # clustering with chosen parameters
+
+    for i, pcd in enumerate(zip(outliers, ga.pcds_inliers)):  # clustering with chosen parameters
         cur_pcd_clusters = []
         cur_label_color = {}
 
         pcd_outlier, pcd_inlier = pcd
-        clustering = skc.DBSCAN(
-            eps=best_params_dbscan[0], min_samples=best_params_dbscan[1]
-        ).fit(np.asarray(pcd_outlier.points))
+        clustering = skc.DBSCAN(eps=best_params_dbscan[0], min_samples=best_params_dbscan[1]).fit(np.asarray(pcd_outlier.points))
         labels = clustering.labels_
         unique_labels = np.unique(labels)
-        set_colors = set()
+        set_colors: Set[list] = set()
 
         colors_outlier = np.zeros(np.shape(pcd_outlier.points))
 
@@ -161,6 +143,7 @@ def main(
             cur_indices = np.where(labels == label)[0].tolist()
             colors_outlier[cur_indices] = cur_color
             cur_pcd_clusters.append(cur_indices)
+
         clusters_indices.append(cur_pcd_clusters)
         dicts_label_color.append(cur_label_color)
 
@@ -176,9 +159,8 @@ def main(
             if_dists = int(input("show distances"))
 
             if if_dists:
-                dists, pair_clusters = separate_all_clusters(
-                    merged_pcd, unique_labels, cur_label_color, cur_pcd_clusters
-                )
+                dists, pair_clusters = separate_all_clusters(merged_pcd, unique_labels, cur_label_color,
+                                                             cur_pcd_clusters)
                 for j, pair in enumerate(pair_clusters):
                     print(dists[j])
                     o3d.visualization.draw_geometries([pair])
@@ -191,14 +173,12 @@ def main(
             mapped_images = []
             image = images[i]
 
-            cur_image = AUDIMethods.map_lidar_points_onto_image(
-                image, lidars[i], colors
-            )
+            cur_image = AUDIMethods.map_lidar_points_onto_image(image, lidars[i], colors)
             mapped_images.append(cur_image)
 
             plt.fig = plt.figure(figsize=(20, 20))
             plt.imshow(cur_image)
-            plt.axis("off")
+            plt.axis('off')
             plt.close()
         elif mode == 4:  # with editing
             vis = o3d.visualization.VisualizerWithEditing()
@@ -216,7 +196,7 @@ def main(
             print(min_dist)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Finds parameters for clusterization algorithms"
     )
@@ -226,31 +206,33 @@ if __name__ == "__main__":
     parser.add_argument(
         "images_path", type=str, help="Directory where images are stored"
     )
-    parser.add_argument("start_indx", type=int, help="Start index")
-    parser.add_argument("num_of_shots", type=int, help="Number of shots to optimise")
-    parser.add_argument("--no-default", dest="default", action="store_false")
-    parser.add_argument("generation_goal", type=int, help="Number of generations in GA")
+    parser.add_argument(
+        "start_indx", type=int, help="Start index"
+    )
+    parser.add_argument(
+        "num_of_shots", type=int, help="Number of shots to optimise"
+    )
+    parser.add_argument("--no-default", dest='default',
+                        action='store_false')
+    parser.add_argument(
+        "generation_goal", type=int, help="Number of generations in GA"
+    )
     parser.add_argument(
         "population_size", type=int, help="Number of samples in population"
     )
     parser.add_argument(
-        "fitness_function",
-        type=int,
-        choices=[1, 2, 3],
-        help="Which fitness functon to use for optimisation: "
-        "1 -- silhouette score, "
-        "2 -- davies-bouldin score,"
-        "3 -- calinski-harabasz",
+        "fitness_function", type=int, choices=[1, 2, 3], help="Which fitness functon to use for optimisation: "
+                                                              "1 -- silhouette score, "
+                                                              "2 -- davies-bouldin score,"
+                                                              "3 -- calinski-harabasz"
     )
     parser.add_argument(
-        "mode",
-        type=int,
-        choices=[1, 2, 3, 4],
-        help="Choose the mode: 1 -- point clouds,"
-        " 2 -- point clouds with distances, "
-        "3 -- mapped images, 4 -- points selection mode",
+        "mode", type=int, choices=[1, 2, 3, 4], help="Choose the mode: 1 -- point clouds,"
+                                                     " 2 -- point clouds with distances, "
+                                                     "3 -- mapped images, 4 -- points selection mode"
     )
-    parser.add_argument("--no-verbose", dest="verbose", action="store_false")
+    parser.add_argument("--no-verbose", dest='verbose',
+                        action='store_false')
 
     args = parser.parse_args()
 
@@ -264,5 +246,5 @@ if __name__ == "__main__":
         args.population_size,
         args.fitness_function,
         args.mode,
-        args.verbose,
+        args.verbose
     )
