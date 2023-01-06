@@ -24,7 +24,7 @@ class MyGA(GA):
         self.num_of_shots = num_of_shots
         self.fitness_funcion_num = fitness_function
 
-    def fitting_function(self, chromosome):
+    def fitting_function(self, chromosome):  # custom fitness function
         silhouette = 1
         davies_bouldin = 2
         calinski_harabasz = 3
@@ -76,8 +76,8 @@ class MyGA(GA):
         return np.mean(scores)
 
     def initialize_population(self):
-        a_eps = 0.1
-        b_eps = 1.3
+        a_eps = 0.1  # minimum valid distance
+        b_eps = 1.3  # maximum valid distance
 
         a_min_samples = 1
         b_min_samples = self.population_size / 2
