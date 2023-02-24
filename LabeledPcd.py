@@ -1,13 +1,10 @@
-from typing import Optional
-
-import numpy as np
 import numpy.typing as npt
 import open3d as o3d
 
 
 class LabeledPcd:
     def __init__(
-        self, pcd: Optional[o3d.geometry.PointCloud], labels: Optional[npt.NDArray]
+        self, pcd: o3d.geometry.PointCloud, labels: npt.NDArray
     ):
         if pcd:
             self.pcd = pcd

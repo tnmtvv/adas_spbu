@@ -9,7 +9,6 @@ from AUDI_methods import AUDIMethods
 from LabeledPcd import LabeledPcd
 
 
-
 #  adopted from https://www.a2d2.audi/a2d2/en/tutorial.html
 def build_point_clouds_and_lidars(lidar_list, num_shots):
     list_pcds = []

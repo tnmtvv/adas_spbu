@@ -1,11 +1,11 @@
 import argparse
 import copy
 import random
-from typing import Set
+from typing import Dict
 
 import loader
-import MyUtils
 import numpy as np
+import numpy.typing as npt
 import open3d as o3d
 import SemanticKitti_methods
 from AUDI_methods import AUDIMethods
@@ -15,6 +15,7 @@ from EasyGA.mutation import Mutation
 from LabeledPcd import LabeledPcd
 from matplotlib import pyplot as plt
 from sklearn import cluster as skc
+
 
 
 def ransac_segmentation(list_pcds, gt_labeled_pcds, distance_threshold=0.4):
@@ -106,7 +107,7 @@ def main(
             list_sub, num_shots_to_optimise
         )
     else:
-        map_color_label = {}
+        map_color_label: Dict[npt.NDArray, int] = {}
         gt_labeled_pcds, extracted_pcds = loader.extract_sem_kitti_pcds(
             list_main, list_sub, map_color_label
         )
@@ -134,14 +135,14 @@ def main(
 
     if not default:  # choose parameters with ga or use default ones
         best_params_dbscan = ga.ga_run(verbose)
-    raw_clustered_pcds = []
+
     IoU = []
 
     for i, pcd in enumerate(
         zip(ga.pcds_cropped_outliers, ga.pcds_inliers)
     ):  # clustering with chosen parameters
         cur_pcd_clusters = []
-        cur_label_color = {}
+        cur_label_color: Dict[int, npt.NDArray] = {}
 
         pcd_outlier, pcd_inlier = pcd
         clustering = skc.DBSCAN(
@@ -152,7 +153,7 @@ def main(
 
         cur_raw_labeled_pcd = LabeledPcd(pcd_outlier, labels)
 
-        map_raw_true = {}
+        map_raw_true: Dict[int, int] = {}
         evaluated_IoU = SemanticKitti_methods.evaluate_IoU(
             gt_outliers[i], cur_raw_labeled_pcd, map_raw_true
         )

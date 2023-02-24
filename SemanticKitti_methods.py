@@ -37,7 +37,7 @@ def get_semantic_from_indices(pcd: LabeledPcd, indices: npt.NDArray):
 
 
 def evaluate_IoU(gt_pcd: LabeledPcd, alg_pcd: LabeledPcd, map_raw_true: Dict):
-    overall_IoU = 0
+    overall_IoU = 0.0
     for label in alg_pcd.unique_labels:
         alg_label_indices = np.where(alg_pcd.labels == label)[0]
         gt_label, semantic_indices = get_semantic_from_indices(
@@ -51,4 +51,4 @@ def evaluate_IoU(gt_pcd: LabeledPcd, alg_pcd: LabeledPcd, map_raw_true: Dict):
         overall_IoU += intersection / union
     return overall_IoU / max(
         len(alg_pcd.unique_labels), len(gt_pcd.unique_labels)
-    )  # if pcds have different ammount of unique labels, coefficient is calculated over the max
+    )  # if pcds have different amount of unique labels, coefficient is calculated over the max
