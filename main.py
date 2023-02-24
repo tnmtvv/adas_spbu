@@ -36,7 +36,6 @@ def ransac_segmentation(list_pcds, gt_labeled_pcds, distance_threshold=0.4):
         list_outliers.append(outlier_cloud)
         list_inliers.append(inlier_cloud)
         list_indices.append(inliers)
-
     return list_outliers, list_inliers, gt_labeled_pcds, list_indices
 
 
@@ -48,7 +47,7 @@ def separate_all_clusters(pcd, labels, hm_lables_colors, indices):
     labels_filtered = list(filter(lambda x: x >= 0, labels))  # filter from x < 0
 
     for i, label_1 in enumerate(labels_filtered):
-        for j, label_2 in enumerate(labels_filtered[i + 1:]):
+        for j, label_2 in enumerate(labels_filtered[i + 1 :]):
             new_pcd = copy.deepcopy(pcd)
             cur_color_1 = hm_lables_colors[label_1]
             cur_color_2 = hm_lables_colors[label_2]
@@ -134,7 +133,6 @@ def main(
 
     if not default:  # choose parameters with ga or use default ones
         best_params_dbscan = ga.ga_run(verbose)
-
     IoU = []
 
     for i, pcd in enumerate(
