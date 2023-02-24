@@ -1,14 +1,13 @@
-import MyUtils
-from AUDI_methods import AUDIMethods
-import SemanticKitti_methods
-
 import os.path
+
 import cv2
-import open3d as o3d
-
+import MyUtils
 import numpy as np
-
+import open3d as o3d
+import SemanticKitti_methods
+from AUDI_methods import AUDIMethods
 from LabeledPcd import LabeledPcd
+
 
 
 #  adopted from https://www.a2d2.audi/a2d2/en/tutorial.html

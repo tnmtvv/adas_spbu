@@ -3,19 +3,18 @@ import copy
 import random
 from typing import Set
 
-import SemanticKitti_methods
 import loader
 import MyUtils
 import numpy as np
 import open3d as o3d
+import SemanticKitti_methods
 from AUDI_methods import AUDIMethods
 from Custom_GA import MyGA
 from EasyGA.crossover import Crossover
 from EasyGA.mutation import Mutation
+from LabeledPcd import LabeledPcd
 from matplotlib import pyplot as plt
 from sklearn import cluster as skc
-
-from LabeledPcd import LabeledPcd
 
 
 def ransac_segmentation(list_pcds, gt_labeled_pcds, distance_threshold=0.4):

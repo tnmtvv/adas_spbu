@@ -1,10 +1,10 @@
 from typing import Dict
 
 import numpy as np
-import open3d as o3d
 import numpy.typing as npt
-
+import open3d as o3d
 from LabeledPcd import LabeledPcd
+
 
 EXTENSIONS_SCAN = [".bin"]
 EXTENSIONS_LABEL = [".label"]

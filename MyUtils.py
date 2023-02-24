@@ -1,11 +1,11 @@
+import random
 from typing import List
 
 import numpy as np
-import random
 import open3d as o3d
-
-from Plane import Plane
 from matplotlib import pyplot as plt
+from Plane import Plane
+
 
 
 def align_color(label, set_colors):
