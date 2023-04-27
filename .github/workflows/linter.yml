@@ -3,7 +3,7 @@ name: Lint Code Base
 on:
   push:
     branches:
-      - GA_Matveeva
+      - master
 
 
 jobs:
