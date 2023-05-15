@@ -85,30 +85,6 @@ class MyGA(GA):
                fitness = metrics.davies_bouldin_score(points, raw_labels)
         return fitness
 
-    # def fitness(self, cloud, chromosome):
-    #     points = np.asarray(cloud.points)
-    #
-    #     clusterer = self.clusterisation_method()
-    #
-    #     params = list(map(lambda x: x.value, chromosome.gene_list))
-    #     params_dict = dict(zip(self.params_names, params))
-    #
-    #     clusterer.set_params(**params_dict)
-    #     raw_labels = clusterer.fit_predict(cloud.points)
-    #     num_of_clusters = len(set(raw_labels))
-    #
-    #     self.target_fitness_type = self.number_to_function[self.fitness_function_num][1]
-    #     if num_of_clusters < 20 or num_of_clusters > 500:
-    #         if self.target_fitness_type == 'max':
-    #             fitness = -1
-    #         else:
-    #             fitness = 5000
-    #     else:
-    #         fitness = float(
-    #             self.number_to_function[self.fitness_function_num][0](points, raw_labels)
-    #         )
-    #     return fitness
-
     @staticmethod
     def fitness(l_args):
         points = l_args[0]
@@ -126,7 +102,6 @@ class MyGA(GA):
         raw_labels = clusterer.fit_predict(points)
         num_of_clusters = len(set(raw_labels))
 
-        # self.target_fitness_type = self.number_to_function[self.fitness_function_num][1]
         if num_of_clusters < 20 or num_of_clusters > 500:
             if target == 'max':
                 fitness = -1
@@ -154,7 +129,6 @@ class MyGA(GA):
                                                                   [self.params_names]*n))
             with multiprocessing.Pool() as pool:
                 scores = pool.map(MyGA.fitness, items, chunksize=n//multiprocessing.cpu_count())
-            # scores = list(map(self.fitness, clouds, [chromosome]*n))
                 pool.terminate()
                 pool.join()
             sk = scores

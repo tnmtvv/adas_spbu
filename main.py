@@ -84,16 +84,6 @@ def main(
     file.close()
 
     print(best_params)
-    # for pcd in pcds_cropped_outliers:  # clustering with chosen parameters
-    #
-    #     pcd_outlier = pcd
-    #
-    #     clusterer = algo()
-    #     clusterer.set_params(**best_params_dict)
-    #     raw_labels = clusterer.fit_predict(pcd_outlier.points)
-    #
-    #     pcd_outlier = MyUtils.paint_cloud(pcd_outlier, raw_labels)
-    #     o3d.visualization.draw_geometries([pcd_outlier])
 
 
 if __name__ == "__main__":
