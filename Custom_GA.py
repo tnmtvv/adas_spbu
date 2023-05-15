@@ -1,3 +1,4 @@
+import multiprocessing
 import random
 import typing
 from typing import List
@@ -31,17 +32,20 @@ class MyGA(GA):
         clusterisation_method: typing.Callable,
         pcds_cropped_outliers: List[open3d.geometry.PointCloud],
         pcds_inliers: List[open3d.geometry.PointCloud],
+        pcds_points,
         possible_string_params=None
 
     ):
         GA.__init__(self)
         self.pcds_inliers = list(pcds_inliers),
         self.pcds_cropped_outliers = list(pcds_cropped_outliers),
+
         self.generation_goal = num_generation
         self.population_size = num_population
         self.num_of_shots = num_of_shots
         self.fitness_function_num = fitness_function_num
         self.fitness_function_impl = self.fitness_function
+        self.points = pcds_points,
         self.map_params_fitnes = {}
         self.necessary_labels = set()
         self.clusterisation_method = clusterisation_method
@@ -49,7 +53,9 @@ class MyGA(GA):
         self.params_names = params_names
         self.params_types = params_types
         self.possible_str_params = possible_string_params
+        self.chromosome_impl = self.my_chromosome_impl
         self.initialize_population()
+
         self.crossover_population_impl = Crossover.Population.random
         self.crossover_individual_impl = Crossover.Individual.single_point
         self.mutation_population_impl = Mutation.Population.best_replace_worst
@@ -79,47 +85,84 @@ class MyGA(GA):
                fitness = metrics.davies_bouldin_score(points, raw_labels)
         return fitness
 
-    def fitness(self, cloud, chromosome):
-        points = np.asarray(cloud.points)
+    # def fitness(self, cloud, chromosome):
+    #     points = np.asarray(cloud.points)
+    #
+    #     clusterer = self.clusterisation_method()
+    #
+    #     params = list(map(lambda x: x.value, chromosome.gene_list))
+    #     params_dict = dict(zip(self.params_names, params))
+    #
+    #     clusterer.set_params(**params_dict)
+    #     raw_labels = clusterer.fit_predict(cloud.points)
+    #     num_of_clusters = len(set(raw_labels))
+    #
+    #     self.target_fitness_type = self.number_to_function[self.fitness_function_num][1]
+    #     if num_of_clusters < 20 or num_of_clusters > 500:
+    #         if self.target_fitness_type == 'max':
+    #             fitness = -1
+    #         else:
+    #             fitness = 5000
+    #     else:
+    #         fitness = float(
+    #             self.number_to_function[self.fitness_function_num][0](points, raw_labels)
+    #         )
+    #     return fitness
 
-        clusterer = self.clusterisation_method()
+    @staticmethod
+    def fitness(l_args):
+        points = l_args[0]
+        gene_list = l_args[1]
+        cluster_method = l_args[2]
+        target = l_args[3]
+        fit_func = l_args[4]
+        params_names = l_args[5]
 
-        params = list(map(lambda x: x.value, chromosome.gene_list))
-        params_dict = dict(zip(self.params_names, params))
+        clusterer = cluster_method()
+        params = list(map(lambda x: x.value, gene_list))
+        params_dict = dict(zip(params_names, params))
 
         clusterer.set_params(**params_dict)
-        raw_labels = clusterer.fit_predict(cloud.points)
+        raw_labels = clusterer.fit_predict(points)
         num_of_clusters = len(set(raw_labels))
 
-        target_fitness_type = self.number_to_function[self.fitness_function_num][1]
+        # self.target_fitness_type = self.number_to_function[self.fitness_function_num][1]
         if num_of_clusters < 20 or num_of_clusters > 500:
-            if target_fitness_type == 'max':
+            if target == 'max':
                 fitness = -1
             else:
                 fitness = 5000
         else:
             fitness = float(
-                self.number_to_function[self.fitness_function_num][0](points, raw_labels)
+                fit_func(points, raw_labels)
             )
         return fitness
 
     def fitness_function(self, chromosome):
         chrom_str = str(chromosome)
+
         if chrom_str in self.map_params_fitnes:
             return self.map_params_fitnes[chrom_str]
         else:
             clouds = list(self.pcds_cropped_outliers)[0]
             n = len(clouds)
-            # with Pool() as pool:
-                # scores = list(pool.starmap(self.fitness, list(zip(clouds, [chromosome]*n))))
-            scores = list(map(self.fitness, clouds, [chromosome]*n))
-            # pool.join()
-            fitness_value = np.mean(scores)
+
+            items = list(zip(list(self.points)[0], [chromosome.gene_list]*n,
+                                                                  [self.clusterisation_method]*n,
+                                                                  [self.number_to_function[self.fitness_function_num][1]]*n,
+                                                                  [self.number_to_function[self.fitness_function_num][0]]*n,
+                                                                  [self.params_names]*n))
+            with multiprocessing.Pool() as pool:
+                scores = pool.map(MyGA.fitness, items, chunksize=n//multiprocessing.cpu_count())
+            # scores = list(map(self.fitness, clouds, [chromosome]*n))
+                pool.terminate()
+                pool.join()
+            sk = scores
+            fitness_value = np.mean(sk)
             self.map_params_fitnes[chrom_str] = fitness_value
             return fitness_value
 
-
-    def initialize_population(self):
+    def user_chromosome_function(self):
         list_of_genes = []
         for i, param in enumerate(self.params_types):
             cur_list = []
@@ -147,7 +190,7 @@ class MyGA(GA):
         chromosome_data = []
         for i, param in enumerate(self.params_types):
             if param == 'int':
-                cur_param = random.randint(2, 100)
+                cur_param = random.randint(1, 100)
             elif param == 'float':
                 cur_param = random.uniform(0.1, 1)
             else:

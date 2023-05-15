@@ -1,6 +1,8 @@
 import argparse
 from typing import Dict
 
+import numpy as np
+
 import Custom_GA
 from Eval import IoU
 from Utils import loader, MyUtils
@@ -29,7 +31,8 @@ def main(
 ):
     algos_params_types, string_params = loader.read_algos_params()
     algos_functions = {'dbscan': skc.DBSCAN, 'kmeans': skc.KMeans, 'optics': skc.OPTICS,
-                       'AgglomerativeClustering': skc.AgglomerativeClustering, 'Bisecting_K-Means': skc.BisectingKMeans}
+                       'AgglomerativeClustering': skc.AgglomerativeClustering, 'Bisecting_K-Means': skc.BisectingKMeans,
+                       'SpectralClustering': skc.SpectralClustering}
 
     algo = algos_functions[clusterisation_method]
     params_types, params_names = MyUtils.parse_parameters_info(algos_params_types[clusterisation_method])
@@ -66,28 +69,31 @@ def main(
     ) = MyUtils.plane_segmentation(pcds, 5)
     # getting pcds without road, road, above road area and road points indices
 
+    clouds_points = []
+    for cloud in pcds_cropped_outliers:
+        clouds_points.append(np.asarray(cloud.points))
     ga = Custom_GA.MyGA(num_shots_to_optimise, fitness_function, generation_goal, population_size, len(params_names),
                         Mutation.Population.random_avoid_best, 0.3, params_types, params_names,
-                        algo, pcds_cropped_outliers, pcds_inliers, possible_string_params=possible_str_params)
+                        algo, pcds_cropped_outliers, pcds_inliers, clouds_points, possible_string_params=possible_str_params)
 
     best_params = ga.ga_run(verbose)
     best_params_dict = dict(zip(params_names, best_params))
 
-    # with open("results.txt", "a") as file:
-    #     file.write("{} {} {}\n".format(tuple(best_params_kmeans), num_shots_to_optimise, fitness_function))
-    # file.close()
+    with open("results.txt", "a") as file:
+        file.write("{} {} {}\n".format(tuple(best_params_dict), num_shots_to_optimise, fitness_function))
+    file.close()
 
     print(best_params)
-    for pcd in pcds_cropped_outliers:  # clustering with chosen parameters
-
-        pcd_outlier = pcd
-
-        clusterer = algo()
-        clusterer.set_params(**best_params_dict)
-        raw_labels = clusterer.fit_predict(pcd_outlier.points)
-
-        pcd_outlier = MyUtils.paint_cloud(pcd_outlier, raw_labels)
-        o3d.visualization.draw_geometries([pcd_outlier])
+    # for pcd in pcds_cropped_outliers:  # clustering with chosen parameters
+    #
+    #     pcd_outlier = pcd
+    #
+    #     clusterer = algo()
+    #     clusterer.set_params(**best_params_dict)
+    #     raw_labels = clusterer.fit_predict(pcd_outlier.points)
+    #
+    #     pcd_outlier = MyUtils.paint_cloud(pcd_outlier, raw_labels)
+    #     o3d.visualization.draw_geometries([pcd_outlier])
 
 
 if __name__ == "__main__":
@@ -126,18 +132,21 @@ if __name__ == "__main__":
     parser.add_argument("--no-verbose", dest="verbose", action="store_false")
 
     args = parser.parse_args()
-    # needed_functions = [1, 2, 3, 7]
-    # needed_functions = [7]
-    # num_clouds = [10]
-    main(
-        args.main_path,
-        args.extra_path,
-        args.start_indx,
-        args.num_of_shots,
-        args.generation_goal,
-        args.population_size,
-        args.fitness_function,
-        args.dataset,
-        args.algo,
-        args.verbose,
-    )
+    needed_functions = [1, 2, 3, 4, 5]
+    num_clouds = [10, 25, 100]
+    algos = ['dbscan', 'kmeans', 'optics']
+    for algo in algos:
+        for num_cloud in num_clouds:
+            for func in needed_functions:
+                main(
+                    args.main_path,
+                    args.extra_path,
+                    args.start_indx,
+                    num_cloud,
+                    args.generation_goal,
+                    args.population_size,
+                    func,
+                    args.dataset,
+                    algo,
+                    args.verbose,
+                )
