@@ -77,7 +77,7 @@ algos_params:
   'dbscan': ['eps:float', 'min_samples:int', 'algorithm:str']
   'kmeans': ['n_clusters:int', 'max_iter:int', 'n_init:int', 'algorithm:str']
   'hdbscan': ['min_cluster_size:int', 'min_samples:int']
-  'optics': ['min_samples:int', 'xi:float', 'min_cluster_size:int', 'max_eps:float', 'metric:str', 'cluster_method:str', 'algorithm:str']
+  'optics': ['min_samples:int', 'xi:float', 'min_cluster_size:int',  'metric:str', 'cluster_method:str', 'algorithm:str']
   'SpectralClustering': ['n_clusters:int', 'n_components:int', 'n_init:int', 'eigen_tol:float',
                          'eigen_solver:str', 'affinity:str','assign_labels:str']
 
@@ -91,9 +91,10 @@ string_params:
     'cluster_method': ['xi','dbscan']
     'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']
   'dbscan':
-    'algorithm': ['auto', 'brute', 'kd_tree', 'ball_tree']
+#    'algorithm': ['auto', 'brute', 'kd_tree', 'ball_tree']
+    'algorithm': ['auto']
   'kmeans':
-    'algorithm': ['lloyd', 'elkan', 'auto', 'full']
+    'algorithm': ['lloyd', 'elkan']
 
 
 

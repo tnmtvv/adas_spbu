@@ -21,15 +21,14 @@ def main(
     verbose=True,
 ):
 
-    algos_params_types = read_algos_params()
+    algos_params_types, algos_str_domains = read_algos_params()
     algos_functions = {'dbscan': skc.DBSCAN, 'kmeans': skc.KMeans, 'optics': skc.OPTICS,
                        'AgglomerativeClustering': skc.AgglomerativeClustering, 'Bisecting_K-Means': skc.BisectingKMeans}
 
     algo = algos_functions[clusterisation_method]
     params_types, params_names = parse_parameters_info(algos_params_types[clusterisation_method])
 
-
-    best_params = parse_parameters(best_params_str)
+    best_params = parse_parameters(best_params_str, params_types)
 
     list_main, list_sub = create_data_lists(
         path_to_lidar,
@@ -38,6 +37,7 @@ def main(
         start_indx + num_shots_to_optimise,
         separator="\.|_",
     )
+    necessary_labels = set()
 
     if num_shots_to_optimise == -1:
         num_shots_to_optimise = len(list_main)
@@ -51,31 +51,27 @@ def main(
             pcds_labeled_outliers,
             pcds_inliers,
             inliers_indx,
-        ) = plane_segmentation(gt_labeled_pcds)
+        ) = plane_segmentation(gt_labeled_pcds, if_eval=True)
     else:
         map_label_color: Dict[int, npt.NDArray] = {}
-        pcds = extract_sem_kitti_pcds(
-            list_main, list_sub, get_AoI_indices
-        )
-        gt_labeled_pcds, necessary_labels = build_sem_kitti_labeled_pcds(pcds, list_sub, map_label_color, get_AoI_indices)
-
+        gt_labeled_pcds, necessary_labels = extract_sem_kitti_pcds(list_main, list_sub, map_label_color, get_AoI_indices)
         (
             pcds_labeled_outliers,
             pcds_inliers,
             inliers_indx,
-        ) = plane_segmentation(gt_labeled_pcds)
+        ) = plane_segmentation(gt_labeled_pcds, if_eval=True)
         # getting pcds without road, road, above road area and road points indices
 
     IoU = []
     best_params_dict = dict(zip(params_names, best_params))
-    necessary_labels = set()
+
 
     for i, pcd in enumerate(
         zip(pcds_labeled_outliers, pcds_inliers)
     ):  # clustering with chosen parameters
         pcd_outlier, pcd_inlier = pcd
 
-        flatten_indices_of_interest = extract_necessary_indices(pcd[0], necessary_labels)
+        flatten_indices_of_interest = extract_necessary_indices(pcd_outlier, necessary_labels)
         clusterer = algo()
         clusterer.set_params(**best_params_dict)
         pcd_outlier.raw_labels = clusterer.fit_predict(pcd_outlier.pcd.points)

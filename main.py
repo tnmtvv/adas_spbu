@@ -1,4 +1,5 @@
 import argparse
+import json
 from typing import Dict
 
 import numpy as np
@@ -80,7 +81,8 @@ def main(
     best_params_dict = dict(zip(params_names, best_params))
 
     with open("results.txt", "a") as file:
-        file.write("{} {} {}\n".format(tuple(best_params_dict), num_shots_to_optimise, fitness_function))
+        # file.write("{} {}\n".format(num_shots_to_optimise, fitness_function))
+        file.write(json.dumps(best_params_dict))
     file.close()
 
     print(best_params)
@@ -122,8 +124,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-verbose", dest="verbose", action="store_false")
 
     args = parser.parse_args()
-    needed_functions = [1, 2, 3, 4, 5]
-    num_clouds = [10, 25, 100]
+    needed_functions = [2]
+    num_clouds = [5]
     algos = ['dbscan', 'kmeans', 'optics']
     for algo in algos:
         for num_cloud in num_clouds:

@@ -30,7 +30,6 @@ def match_clusters_best_IoU(gt_label: int, pcd: LabeledPcd, true_indices: npt.ND
         intersection = local_raw_label_indices
         cur_iou = float(len(intersection) / len(union))
 
-
         IoUs[cur_iou] = label
         if (label in external_iou_map and external_iou_map[label] < cur_iou) or label not in external_iou_map:
             external_iou_map[label] = cur_iou

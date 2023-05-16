@@ -39,5 +39,5 @@ class LabeledPcd:
 
             self.sem_labels = sem_labels
             self.sem_colors = sem_colors
-            if sem_labels:
+            if sem_labels is not None:
                 self.unique_sem_labels = set(sem_labels)

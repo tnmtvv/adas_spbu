@@ -29,6 +29,7 @@ def read_labels(label_file):
     label = (upper_half << 16) + lower_half  # reconstruct full label
     return label.astype(np.uint32), lower_half
 
+
 def get_AoI_indices(cur_pcd: o3d.data.PCDPointCloud):
     points_to_filter = np.asarray(cur_pcd.points)[:, 0]
     indices = np.where(points_to_filter > 0)[0].tolist()

@@ -66,11 +66,12 @@ def get_projection(inlier, cropped_outlier):
     return pcd_projected
 
 
-def two_stage_plane_segmentation(cur_pcd, down_sample_coeff=1, if_eval=False):
+def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
+
     if if_eval:
-        cur_pcd = cur_pcd.pcd.uniform_down_sample(down_sample_coeff)
+        cur_pcd = true_pcd.pcd.uniform_down_sample(down_sample_coeff)
     else:
-        cur_pcd = cur_pcd.uniform_down_sample(down_sample_coeff)
+        cur_pcd = true_pcd.uniform_down_sample(down_sample_coeff)
     points = np.array(cur_pcd.points)
 
     # extract plane on same level with the lowest point
@@ -90,32 +91,51 @@ def two_stage_plane_segmentation(cur_pcd, down_sample_coeff=1, if_eval=False):
     d = np.dot(normal_vector, c)
 
     # get all the points that satisfy the equation
-    # second_plane_point_indices = np.where(np.abs(np.asarray(points).dot(normal_vector) - d) <= 0.3)[0]
-    _, second_plane_point_indices = cur_pcd.segment_plane(distance_threshold=0.1, ransac_n=3, num_iterations=1000)
+    second_plane_point_indices = np.where(np.abs(np.asarray(points).dot(normal_vector) - d) <= 0.3)[0]
+    # _, second_plane_point_indices = cur_pcd.segment_plane(distance_threshold=0.1, ransac_n=3, num_iterations=1000)
     inlier_cloud = cur_pcd.select_by_index(second_plane_point_indices)
     cur_pcd = cur_pcd.select_by_index(second_plane_point_indices, invert=True)
+    if if_eval:
+        # true_pcd.pcd = true_pcd.pcd.select_by_index(second_plane_point_indices, invert=True)
+        all_gt = range(0, len(true_pcd.gt_labels))
+        all_sem = range(0, len(true_pcd.sem_labels))
+        true_pcd.gt_labels = true_pcd.gt_labels[list(set(all_gt).difference(set(second_plane_point_indices)))]
+        true_pcd.sem_labels = true_pcd.sem_labels[list(set(all_sem).difference(set(second_plane_point_indices)))]
 
     left_bound, right_bound = find_left_right(list(inlier_cloud.points))
 
     cur_outlier_points = list(np.asarray(cur_pcd.points))
     cropped_outlier_points = list(filter(lambda x: left_bound <= x[1] <= right_bound, cur_outlier_points))
-    cropped_outlier_indices = range(0, len(cur_outlier_points))
     set_outlier_points = set(tuple(x) for x in cropped_outlier_points)
 
+    cropped_outlier_indices = range(0, len(cur_outlier_points))
     cropped_outlier_indices = list(
         filter(lambda i: tuple(cur_outlier_points[i]) in set_outlier_points, cropped_outlier_indices))
 
     cur_pcd = cur_pcd.select_by_index(cropped_outlier_indices)
+    if eval:
+        # true_pcd.pcd = true_pcd.pcd.select_by_index(second_plane_point_indices, invert=True)
+        true_pcd.gt_labels = true_pcd.gt_labels[cropped_outlier_indices]
+        true_pcd.unique_gt_labels = set(true_pcd.gt_labels)
+        true_pcd.gt_colors = true_pcd.pcd.colors
+        true_pcd.sem_labels = true_pcd.sem_labels[cropped_outlier_indices]
+        true_pcd.unique_sem_labels = set(true_pcd.sem_labels)
+
+
     # o3d.visualization.draw_geometries([inlier_cloud])
     # o3d.visualization.draw_geometries([cur_pcd])
     return cur_pcd, inlier_cloud, second_plane_point_indices
 
 
-def plane_segmentation(gt_pcds, down_smple_coeff=1):
+def plane_segmentation(gt_pcds, down_smple_coeff=1, if_eval=False):
     all_indices = []
     inlier_clouds = []
+
     for i, _ in enumerate(gt_pcds):
-        gt_pcds[i], inlier_cloud, indices = two_stage_plane_segmentation(gt_pcds[i], down_smple_coeff)
+        if if_eval:
+            gt_pcds[i].pcd, inlier_cloud, indices = two_stage_plane_segmentation(gt_pcds[i], down_smple_coeff, if_eval)
+        else:
+            gt_pcds[i], inlier_cloud, indices = two_stage_plane_segmentation(gt_pcds[i], down_smple_coeff, if_eval)
         all_indices.append(indices)
         inlier_clouds.append(inlier_cloud)
 
@@ -134,9 +154,11 @@ def paint_cloud(cloud, raw_labels):
     return cloud
 
 
-def parse_parameters(params: str):
+def parse_parameters(params: str, params_types):
+    what_to_parse = {'int': int, 'float': float, 'str': str}
     best_params_str = params[1:-1]
-    best_params = list(map(lambda x: double(x), best_params_str.split(',')))
+    params_and_their_types = list(zip(best_params_str.split(','), params_types))
+    best_params = list(map(lambda x: what_to_parse[x[1]](x[0]), params_and_their_types))
     return best_params
 
 
