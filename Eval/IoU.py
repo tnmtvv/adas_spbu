@@ -70,4 +70,3 @@ def evaluate_IoU(pcd: LabeledPcd, map_raw_true: Dict, flatten_indices_of_interes
 
     overall_IoU = overall_IoU / (len(unique_gt_labels_of_interest))
     return overall_IoU, map_true_raw # if pcds have different amount of unique labels, coefficient is calculated over the max
-

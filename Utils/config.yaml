@@ -74,7 +74,7 @@ color_map: # bgr
 necessary_labels: [1, 10, 11, 13, 15, 16, 18, 20, 30, 31, 32, 81, 99, 252, 253, 254, 255, 256, 257, 258, 259]
 
 algos_params:
-  'dbscan': ['eps:float', 'min_samples:int', 'algorithm:str']
+  'dbscan': ['eps:float', 'min_samples:int',  'algorithm:str']
   'kmeans': ['n_clusters:int', 'max_iter:int', 'n_init:int', 'algorithm:str']
   'hdbscan': ['min_cluster_size:int', 'min_samples:int']
   'optics': ['min_samples:int', 'xi:float', 'min_cluster_size:int',  'metric:str', 'cluster_method:str', 'algorithm:str']

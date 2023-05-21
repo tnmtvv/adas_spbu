@@ -63,11 +63,10 @@ def get_projection(inlier, cropped_outlier):
 
 
 def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
-
-    if if_eval:
-        cur_pcd = true_pcd.pcd.uniform_down_sample(5)
-    else:
+    if not if_eval:
         cur_pcd = true_pcd.uniform_down_sample(down_sample_coeff)
+    else:
+        cur_pcd = true_pcd.pcd
     points = np.array(cur_pcd.points)
 
     # extract plane on same level with the lowest point

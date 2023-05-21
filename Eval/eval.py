@@ -114,19 +114,19 @@ def main(
 
         colors_cloud_raw = np.zeros(np.shape(pcd_outlier.pcd.points))
 
-        one_more_set = set()
-        for label in pcd_outlier.unique_raw_labels:
-            cur_color = align_color(label, one_more_set)
-            cur_indices = np.where(pcd_outlier.raw_labels == label)[0].tolist()
-            # label_indices_of_interest = list(set(cur_indices).intersection(set(flatten_indices_of_interest)))
-            colors_cloud_raw[cur_indices] = cur_color
-
-        if visualize:
-            pcd_outlier.pcd.colors = o3d.utility.Vector3dVector(pcd_outlier.gt_colors)
-            o3d.visualization.draw_geometries([pcd_outlier.pcd])
-
-            pcd_outlier.pcd.colors = o3d.utility.Vector3dVector(colors_cloud_raw)
-            o3d.visualization.draw_geometries([pcd_outlier.pcd])
+        # one_more_set = set()
+        # for label in pcd_outlier.unique_raw_labels:
+        #     cur_color = align_color(label, one_more_set)
+        #     cur_indices = np.where(pcd_outlier.raw_labels == label)[0].tolist()
+        #     # label_indices_of_interest = list(set(cur_indices).intersection(set(flatten_indices_of_interest)))
+        #     colors_cloud_raw[cur_indices] = cur_color
+        #
+        # if visualize:
+        #     pcd_outlier.pcd.colors = o3d.utility.Vector3dVector(pcd_outlier.gt_colors)
+        #     o3d.visualization.draw_geometries([pcd_outlier.pcd])
+        #
+        #     pcd_outlier.pcd.colors = o3d.utility.Vector3dVector(colors_cloud_raw)
+        #     o3d.visualization.draw_geometries([pcd_outlier.pcd])
 
         if verbose:
             print(str(i) + ': ' + str(evaluated_IoU))
