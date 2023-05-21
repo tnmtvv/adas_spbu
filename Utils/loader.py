@@ -89,6 +89,7 @@ def build_audi_labeled_pcds(gt_pcds):
             cur_indices = np.where(colors == cur_true_color)[0].tolist()
             cur_true_labels[cur_indices] = i
         gt_labeled_pcds.append(LabeledPcd(cur_pcd, gt_labels=cur_true_labels,true_colors=colors))
+    # o3d.visualization.draw_geometries([gt_labeled_pcds[0].pcd])
     return gt_labeled_pcds
 
 
@@ -143,8 +144,8 @@ def extract_sem_kitti_pcds(bin_list, label_list, map_label_color, get_AoF: Calla
             cur_pcd.colors = o3d.utility.Vector3dVector(cur_colors)
             gt_labeled_pcds.append(LabeledPcd(cur_pcd, gt_labels=cur_true_labels[indices], sem_labels=cur_sem_labels,
                                               sem_colors=cur_sem_colors, true_colors=cur_colors))
+        # o3d.visualization.draw_geometries([gt_labeled_pcds[0].pcd])
     return gt_labeled_pcds, necessary_labels
-
 
 
 def create_data_lists(

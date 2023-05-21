@@ -28,10 +28,6 @@ def find_left_right(inlier_points):
     return sorted_points[0][1], sorted_points[-1][1]
 
 
-# def find_min_z(points):
-#     min_z = list(sorted(points, key=lambda x: x[-1]))[0]
-#     return min_z
-
 def find_min_z(points):
     sorted_points = list(sorted(points, key=lambda x: x[-1]))
     cur_min_z = sorted_points[0]
@@ -69,14 +65,14 @@ def get_projection(inlier, cropped_outlier):
 def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
 
     if if_eval:
-        cur_pcd = true_pcd.pcd.uniform_down_sample(down_sample_coeff)
+        cur_pcd = true_pcd.pcd.uniform_down_sample(5)
     else:
         cur_pcd = true_pcd.uniform_down_sample(down_sample_coeff)
     points = np.array(cur_pcd.points)
 
     # extract plane on same level with the lowest point
     min_z_point = find_min_z(points)
-    plane_point_indices = np.where(np.abs(points[:, -1] - min_z_point) < 0.15)
+    plane_point_indices = np.where(np.abs(points[:, -1] - min_z_point) < 0.25)
     plane_points = points[plane_point_indices]
     #
     # pcd = cur_pcd.select_by_index(plane_point_indices[0])
@@ -85,13 +81,16 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
 
     # build plane equation of the extracted points
     plane_equation = Plane.get_equation(plane_points)
+    # svd = np.linalg.svd(points.T - np.mean(points.T, axis=1, keepdims=True))
+    # left = svd[0]
+    # normal_vector = left[:, -1]
 
     normal_vector = plane_equation[:-1]
     c = np.mean(plane_points, axis=0)
     d = np.dot(normal_vector, c)
 
     # get all the points that satisfy the equation
-    second_plane_point_indices = np.where(np.abs(np.asarray(points).dot(normal_vector) - d) <= 0.3)[0]
+    second_plane_point_indices = np.where(np.abs(np.asarray(points).dot(normal_vector) - d) <= 0.4)[0]
     # _, second_plane_point_indices = cur_pcd.segment_plane(distance_threshold=0.1, ransac_n=3, num_iterations=1000)
     inlier_cloud = cur_pcd.select_by_index(second_plane_point_indices)
     cur_pcd = cur_pcd.select_by_index(second_plane_point_indices, invert=True)
@@ -121,9 +120,10 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
         true_pcd.sem_labels = true_pcd.sem_labels[cropped_outlier_indices]
         true_pcd.unique_sem_labels = set(true_pcd.sem_labels)
 
-
     # o3d.visualization.draw_geometries([inlier_cloud])
-    # o3d.visualization.draw_geometries([cur_pcd])
+    # o3d.visualization.draw_geometries([pcd])
+
+
     return cur_pcd, inlier_cloud, second_plane_point_indices
 
 
@@ -155,11 +155,15 @@ def paint_cloud(cloud, raw_labels):
 
 
 def parse_parameters(params: str, params_types):
+    cur_ga_params = [10, 15] # generation_goal, chromosome
     what_to_parse = {'int': int, 'float': float, 'str': str}
     best_params_str = params[1:-1]
-    params_and_their_types = list(zip(best_params_str.split(','), params_types))
+    ga_params_str, algo_params = list(best_params_str.split(';'))
+    if ga_params_str and algo_params:
+        cur_ga_params = list(map(lambda x: int(x), (ga_params_str.split(','))))
+    params_and_their_types = list(zip(algo_params.split(','), params_types))
     best_params = list(map(lambda x: what_to_parse[x[1]](x[0]), params_and_their_types))
-    return best_params
+    return cur_ga_params, best_params
 
 
 def parse_parameters_info(parameters_types):

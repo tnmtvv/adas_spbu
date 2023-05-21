@@ -43,7 +43,6 @@ def create_open3d_pc(lidar, cam_image=None):
     else:
         colours = make_colours(lidar, cam_image)
     pcd.colors = o3d.utility.Vector3dVector(colours)
-
     return pcd
 
 

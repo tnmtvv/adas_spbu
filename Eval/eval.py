@@ -1,4 +1,6 @@
 import argparse
+import EvalToGt
+from Utils import loader
 
 from Utils.DatasetFunctions.SemanticKitti_methods import get_AoI_indices
 from Utils.MyUtils import *
@@ -7,6 +9,18 @@ from Utils.loader import *
 from sklearn import cluster as skc
 
 from IoU import *
+
+
+def cluster_with_params(labeled_pcd, params_dict, clusterer, flatten_indices_of_interest):
+    clusterer.set_params(**params_dict)
+    labeled_pcd.raw_labels = clusterer.fit_predict(labeled_pcd.pcd.points)
+    labeled_pcd.unique_raw_labels = set(labeled_pcd.raw_labels)
+    map_raw_true: Dict[int, int] = {}
+    labeled_pcd.gt_colors = np.asarray(labeled_pcd.pcd.colors)
+    evaluated_IoU, map_true_raw = evaluate_IoU(
+        labeled_pcd, map_raw_true, flatten_indices_of_interest
+    )
+    return evaluated_IoU, map_true_raw
 
 
 def main(
@@ -19,6 +33,7 @@ def main(
     clusterisation_method: str,
     visualize=True,
     verbose=True,
+    best_possible_result=True
 ):
 
     algos_params_types, algos_str_domains = read_algos_params()
@@ -28,7 +43,7 @@ def main(
     algo = algos_functions[clusterisation_method]
     params_types, params_names = parse_parameters_info(algos_params_types[clusterisation_method])
 
-    best_params = parse_parameters(best_params_str, params_types)
+    cur_ga_params, best_params = parse_parameters(best_params_str, params_types)
 
     list_main, list_sub = create_data_lists(
         path_to_lidar,
@@ -63,8 +78,24 @@ def main(
         # getting pcds without road, road, above road area and road points indices
 
     IoU = []
-    best_params_dict = dict(zip(params_names, best_params))
+    IoU_gt = []
 
+    best_params_dict = dict(zip(params_names, best_params))
+    algos_params_types, string_params = loader.read_algos_params()
+
+    possible_str_params = None
+    if clusterisation_method in string_params:
+        possible_str_params = string_params[clusterisation_method]
+
+    best_params_dict_gt = {}
+    if best_possible_result:
+        ga = EvalToGt.GAToCheck(num_shots_to_optimise, cur_ga_params[0], cur_ga_params[1],
+                            len(params_names), 0.3, params_types, params_names,
+                            algo, pcds_labeled_outliers, necessary_labels,
+                            possible_string_params=possible_str_params)
+
+        best_params_gt = ga.ga_run(verbose)
+        best_params_dict_gt = dict(zip(params_names, best_params_gt))
 
     for i, pcd in enumerate(
         zip(pcds_labeled_outliers, pcds_inliers)
@@ -73,17 +104,13 @@ def main(
 
         flatten_indices_of_interest = extract_necessary_indices(pcd_outlier, necessary_labels)
         clusterer = algo()
-        clusterer.set_params(**best_params_dict)
-        pcd_outlier.raw_labels = clusterer.fit_predict(pcd_outlier.pcd.points)
 
-        pcd_outlier.unique_raw_labels = set(pcd_outlier.raw_labels)
-
-        map_raw_true: Dict[int, int] = {}
-        pcd_outlier.gt_colors = np.asarray(pcd_outlier.pcd.colors)
-        evaluated_IoU, map_true_raw = evaluate_IoU(
-            pcd_outlier, map_raw_true, flatten_indices_of_interest
-        )
+        evaluated_IoU, map_true_raw =cluster_with_params(pcd_outlier, best_params_dict, clusterer, flatten_indices_of_interest)
         IoU.append(evaluated_IoU)
+
+        if best_possible_result:
+            evaluated_IoU_gt, map_true_raw_gt = cluster_with_params(pcd_outlier, best_params_dict_gt, clusterer, flatten_indices_of_interest)
+            IoU_gt.append(evaluated_IoU_gt)
 
         colors_cloud_raw = np.zeros(np.shape(pcd_outlier.pcd.points))
 
@@ -105,6 +132,8 @@ def main(
             print(str(i) + ': ' + str(evaluated_IoU))
 
     print(np.mean(np.asarray(IoU)))
+    if best_possible_result:
+        print('best possible result', np.mean(np.asarray(IoU_gt)))
 
 
 if __name__ == "__main__":
@@ -130,6 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("algo", type=str, help="Your algorithm")
     parser.add_argument("--no-verbose", dest="verbose", action="store_false")
     parser.add_argument("--no-visualize", dest="visualize", action="store_false")
+    parser.add_argument("best_possible_result", action="store_true")
 
     args = parser.parse_args()
 
@@ -142,5 +172,6 @@ if __name__ == "__main__":
         args.dataset,
         args.algo,
         args.verbose,
-        args.visualize
+        args.visualize,
+        args.best_possible_result
     )

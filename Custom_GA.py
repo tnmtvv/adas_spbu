@@ -86,6 +86,15 @@ class MyGA(GA):
         return fitness
 
     @staticmethod
+    def gt_metric(points=None, raw_labels=None):
+        self.target_fitness_type = "max"
+        cur_map = {}
+        cloud.raw_labels = clustering.labels_
+        flatten_indices_of_interest = SemanticKitti_methods.extract_necessary_indices(cloud, self.necessary_labels)
+        fitness, _ = SemanticKitti_methods.evaluate_IoU(cloud, cur_map, flatten_indices_of_interest)
+        return fitness
+
+    @staticmethod
     def fitness(l_args):
         points = l_args[0]
         gene_list = l_args[1]
@@ -128,7 +137,7 @@ class MyGA(GA):
                                                                   [self.number_to_function[self.fitness_function_num][0]]*n,
                                                                   [self.params_names]*n))
             with multiprocessing.Pool() as pool:
-                scores = pool.map(MyGA.fitness, items, chunksize=n//multiprocessing.cpu_count())
+                scores = pool.map(MyGA.fitness, items, chunksize=max(n//multiprocessing.cpu_count(),1))
                 pool.terminate()
                 pool.join()
             sk = scores
@@ -174,8 +183,8 @@ class MyGA(GA):
             chromosome_data.append(cur_param)
         return chromosome_data
 
-
     def ga_run(self, verbose):
+        self.target_fitness_type = self.number_to_function[self.fitness_function_num][1]
         while self.active():
             self.evolve(1)
             if verbose:
