@@ -1,5 +1,6 @@
 import argparse
 import EvalToGt
+from Eval import IoU
 from Utils import loader
 
 from Utils.DatasetFunctions.SemanticKitti_methods import get_AoI_indices
@@ -77,7 +78,7 @@ def main(
         ) = plane_segmentation(gt_labeled_pcds, if_eval=True)
         # getting pcds without road, road, above road area and road points indices
 
-    IoU = []
+    IoU_algo = []
     IoU_gt = []
 
     best_params_dict = dict(zip(params_names, best_params))
@@ -102,11 +103,14 @@ def main(
     ):  # clustering with chosen parameters
         pcd_outlier, pcd_inlier = pcd
 
-        flatten_indices_of_interest = extract_necessary_indices(pcd_outlier, necessary_labels)
+        if not necessary_labels:
+            flatten_indices_of_interest = IoU.extract_necessary_indices(pcd_outlier, set(pcd_outlier.gt_labels))
+        else:
+            flatten_indices_of_interest = IoU.extract_necessary_indices(pcd_outlier, necessary_labels)
         clusterer = algo()
 
         evaluated_IoU, map_true_raw =cluster_with_params(pcd_outlier, best_params_dict, clusterer, flatten_indices_of_interest)
-        IoU.append(evaluated_IoU)
+        IoU_algo.append(evaluated_IoU)
 
         if best_possible_result:
             evaluated_IoU_gt, map_true_raw_gt = cluster_with_params(pcd_outlier, best_params_dict_gt, clusterer, flatten_indices_of_interest)
@@ -131,7 +135,7 @@ def main(
         if verbose:
             print(str(i) + ': ' + str(evaluated_IoU))
 
-    print(np.mean(np.asarray(IoU)))
+    print(np.mean(np.asarray(IoU_algo)))
     if best_possible_result:
         print('best possible result', np.mean(np.asarray(IoU_gt)))
 
@@ -163,15 +167,21 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(
-        args.lidar_path,
-        args.images_path,
-        args.start_indx,
-        args.num_of_shots,
-        args.best_parameters,
-        args.dataset,
-        args.algo,
-        args.verbose,
-        args.visualize,
-        args.best_possible_result
-    )
+    params_list = [[10, '(10,15;22,70,83,elkan)','kmeans'], [10, '(93,75,100,elkan)','kmeans'],
+                   [10, '(23,67,55,lloyd)','kmeans'], [25, '(29,64,74,lloyd)','kmeans'],
+                   [25, '(29,64,74,lloyd)','kmeans'], [25, '[98,96,75,elkan]','kmeans'],
+                   [25, ' [28,28,84,lloyd]','kmeans'], [10, '[24,0.9738889025350547,87,euclidean,xi,ball_tree]','optics']]
+
+    for params in params_list:
+        main(
+            args.lidar_path,
+            args.images_path,
+            args.start_indx,
+            params[0],
+            params[1],
+            args.dataset,
+            params[2],
+            args.verbose,
+            args.visualize,
+            args.best_possible_result
+        )

@@ -14,18 +14,19 @@ import open3d as o3d
 
 
 def read_algos_params():
-    with open("../Utils/config.yaml", "r") as stream:
+    with open("../config.yaml", "r") as stream:
         try:
             data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
     map_algo_params = data['algos_params']
     map_algo_str_params = data['string_params']
+    map_algo_numeric_params = data['numeric_params']
     return map_algo_params, map_algo_str_params
 
 
 def read_labels_info():
-    with open("../Utils/config.yaml", "r") as stream:
+    with open("../config.yaml", "r") as stream:
         try:
             data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
@@ -88,7 +89,7 @@ def build_audi_labeled_pcds(gt_pcds):
         for i, cur_true_color in enumerate(unique_colors):
             cur_indices = np.where(colors == cur_true_color)[0].tolist()
             cur_true_labels[cur_indices] = i
-        gt_labeled_pcds.append(LabeledPcd(cur_pcd, gt_labels=cur_true_labels,true_colors=colors))
+        gt_labeled_pcds.append(LabeledPcd(cur_pcd, gt_labels=cur_true_labels,true_colors=colors, sem_labels=cur_true_labels))
     # o3d.visualization.draw_geometries([gt_labeled_pcds[0].pcd])
     return gt_labeled_pcds
 

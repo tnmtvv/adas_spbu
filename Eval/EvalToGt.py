@@ -75,7 +75,10 @@ class GAToCheck(GA):
                 self.target_fitness_type = "max"
                 cur_map = {}
                 cloud.raw_labels = raw_labels
-                flatten_indices_of_interest = IoU.extract_necessary_indices(cloud, self.necessary_labels)
+                if not self.necessary_labels:
+                    flatten_indices_of_interest = IoU.extract_necessary_indices(cloud, set(cloud.gt_labels))
+                else:
+                    flatten_indices_of_interest = IoU.extract_necessary_indices(cloud, self.necessary_labels)
                 fitness, _ = IoU.evaluate_IoU(cloud, cur_map, flatten_indices_of_interest)
                 scores.append(fitness)
             fitness_value = np.mean(scores)

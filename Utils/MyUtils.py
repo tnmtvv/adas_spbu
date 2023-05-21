@@ -39,7 +39,7 @@ def find_min_z(points):
         next_min_z = sorted_points[i]
     layer = list(filter(lambda x: np.abs(x[2] - cur_min_z[-1]) < 0.7, points))
     eps = 0.25
-    while len(layer) < 2000:
+    while len(layer) < 1000:
         layer = list(filter(lambda x: np.abs(x[2] - cur_min_z[-1]) < 0.7 + eps, points))
         eps += 0.25
     # pcd = o3d.geometry.PointCloud()
@@ -111,7 +111,7 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
         filter(lambda i: tuple(cur_outlier_points[i]) in set_outlier_points, cropped_outlier_indices))
 
     cur_pcd = cur_pcd.select_by_index(cropped_outlier_indices)
-    if eval:
+    if if_eval:
         # true_pcd.pcd = true_pcd.pcd.select_by_index(second_plane_point_indices, invert=True)
         true_pcd.gt_labels = true_pcd.gt_labels[cropped_outlier_indices]
         true_pcd.unique_gt_labels = set(true_pcd.gt_labels)
@@ -121,7 +121,6 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
 
     # o3d.visualization.draw_geometries([inlier_cloud])
     # o3d.visualization.draw_geometries([pcd])
-
 
     return cur_pcd, inlier_cloud, second_plane_point_indices
 

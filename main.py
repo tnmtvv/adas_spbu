@@ -142,3 +142,15 @@ if __name__ == "__main__":
                     algo,
                     args.verbose,
                 )
+    # main(
+    #     args.main_path,
+    #     args.extra_path,
+    #     args.start_indx,
+    #     args.num_of_shots,
+    #     args.generation_goal,
+    #     args.population_size,
+    #     args.fitness_function,
+    #     args.dataset,
+    #     args.algo,
+    #     args.verbose,
+    # )
