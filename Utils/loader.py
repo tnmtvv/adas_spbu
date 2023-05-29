@@ -22,7 +22,7 @@ def read_algos_params():
     map_algo_params = data['algos_params']
     map_algo_str_params = data['string_params']
     map_algo_numeric_params = data['numeric_params']
-    return map_algo_params, map_algo_str_params
+    return map_algo_params, map_algo_str_params, map_algo_numeric_params
 
 
 def read_labels_info():
@@ -45,14 +45,14 @@ def build_point_clouds_and_lidars(lidar_list, num_shots, image_list=None):
         data = np.load(file)
 
         lidar_front_center = {
-            "points": data["points"],
-            "reflectance": data["reflectance"],
-            "timestamp": data["timestamp"],
-            "row": data["row"],
-            "col": data["col"],
-            "distance": data["distance"],
-            "depth": data["depth"],
-            "lidar_ids": data["lidar_id"],
+            "points": data["pcloud_points"],
+            "reflectance": data["pcloud_attr.reflectance"],
+            "timestamp": data["pcloud_attr.timestamp"],
+            "row": data["pcloud_attr.row"],
+            "col": data["pcloud_attr.col"],
+            "distance": data["pcloud_attr.distance"],
+            "depth": data["pcloud_attr.depth"],
+            "lidar_ids": data["pcloud_attr.lidar_id"],
         }
         if image_list:
             semantic_image_front_center = cv2.imread(image_list[i])
@@ -66,18 +66,18 @@ def build_point_clouds_and_lidars(lidar_list, num_shots, image_list=None):
 
 
 # adopted from https://github.com/PRBonn/semantic-kitti-api/blob/master/auxiliary/laserscan.py
-# def extract_sem_kitti_pcds(bin_list, label_list, get_AoF: Callable = None):
-#     gt_pcds = []
-#
-#     if len(bin_list) == len(label_list):
-#         for i, bin_file in enumerate(bin_list):
-#             print(bin_file)
-#             cur_pcd = SemanticKitti_methods.read_pcd_from_bin(bin_file)
-#             if get_AoF:
-#                 indices = get_AoF(cur_pcd)
-#                 cur_pcd = cur_pcd.select_by_index(indices=indices)
-#             gt_pcds.append(cur_pcd)
-#     return gt_pcds
+def extract_sem_kitti_pcds(bin_list, label_list, get_AoF: Callable = None):
+    gt_pcds = []
+
+    if len(bin_list) == len(label_list):
+        for i, bin_file in enumerate(bin_list):
+            print(bin_file)
+            cur_pcd = SemanticKitti_methods.read_pcd_from_bin(bin_file)
+            if get_AoF:
+                indices = get_AoF(cur_pcd)
+                cur_pcd = cur_pcd.select_by_index(indices=indices)
+            gt_pcds.append(cur_pcd)
+    return gt_pcds
 
 
 def build_audi_labeled_pcds(gt_pcds):
@@ -94,7 +94,7 @@ def build_audi_labeled_pcds(gt_pcds):
     return gt_labeled_pcds
 
 
-def extract_sem_kitti_pcds(bin_list, label_list, map_label_color, get_AoF: Callable = None):
+def extract_sem_kitti_pcds_labeled(bin_list, label_list, map_label_color, get_AoF: Callable = None):
     gt_labeled_pcds = []
 
     map_sem_color, necessary_labels = read_labels_info()

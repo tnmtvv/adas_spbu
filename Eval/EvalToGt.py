@@ -1,6 +1,6 @@
 import multiprocessing
 import random
-from typing import List, Set, Callable
+from typing import List, Set, Callable, Dict
 
 # import fast_hdbscan
 import numpy as np
@@ -28,6 +28,7 @@ class GAToCheck(GA):
         gene_mutation_rate: float,
         params_types: List[str],
         params_names: List[str],
+        params_domains: Dict,
         clusterisation_method: Callable,
         pcds_cropped_outliers: List[LabeledPcd],
         necessary_labels: Set[int],

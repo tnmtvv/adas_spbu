@@ -47,8 +47,8 @@ def create_open3d_pc(lidar, cam_image=None):
 
 
 def skew_sym_matrix(u):
-    return np.array([[    0, -u[2],  u[1]],
-                     [ u[2],     0, -u[0]],
+    return np.array([[0, -u[2],  u[1]],
+                     [u[2],     0, -u[0]],
                      [-u[1],  u[0],    0]])
 
 
@@ -110,36 +110,41 @@ def get_points(bbox):
     return points
 
 
-def map_lidar_points_onto_image(
-    image_orig,
-    lidar,
-    local_colors,
-    pixel_size=3,
-    pixel_opacity=1,
-    ):
+def extract_images(images_path_list):
+    images_list = []
+
+    for file_name in images_path_list:
+        images_list.append(cv2.imread(file_name))
+    return images_list
+
+
+def map_lidar_points_onto_image(image_orig, lidar, colors, pixel_size=3, pixel_opacity=1):
     image = np.copy(image_orig)
 
     # get rows and cols
+    rows = (lidar['row'] + 0.5).astype(np.int)
+    cols = (lidar['col'] + 0.5).astype(np.int)
 
-    rows = (lidar["row"] + 0.5).astype(np.int)
-    cols = (lidar["col"] + 0.5).astype(np.int)
+    # lowest distance values to be accounted for in colour code
+    MIN_DISTANCE = np.min(lidar['distance'])
+    # largest distance values to be accounted for in colour code
+    MAX_DISTANCE = np.max(lidar['distance'])
 
+    # get distances
+    distances = lidar['distance']
     # determine point colours from distance
-
-    colours = local_colors
-
+    colours = colors.flatten(order='C')
+    colours = np.asarray([np.asarray(hsv_to_rgb(0.75 * c, np.sqrt(pixel_opacity), 1.0)) for c in colours])
     pixel_rowoffs = np.indices([pixel_size, pixel_size])[0] - pixel_size // 2
     pixel_coloffs = np.indices([pixel_size, pixel_size])[1] - pixel_size // 2
     canvas_rows = image.shape[0]
     canvas_cols = image.shape[1]
-    for i in range(len(rows)):
+    for i in range(len(colours)):
         pixel_rows = np.clip(rows[i] + pixel_rowoffs, 0, canvas_rows - 1)
         pixel_cols = np.clip(cols[i] + pixel_coloffs, 0, canvas_cols - 1)
-        image[pixel_rows, pixel_cols, :] = (1.0 - pixel_opacity) * np.multiply(
-            image[pixel_rows, pixel_cols, :], colours[i]
-        ) + pixel_opacity * 255 * colours[i]
+        image[pixel_rows, pixel_cols, :] = (1. - pixel_opacity) * \
+            np.multiply(image[pixel_rows, pixel_cols, :], colours[i]) + pixel_opacity * 255 * colours[i]
     return image.astype(np.uint8)
-
  
 def hsv_to_rgb(h, s, v):
     if s == 0.0:
