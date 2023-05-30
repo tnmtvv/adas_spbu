@@ -86,7 +86,6 @@ def main(
         generation_goal,
         population_size,
         len(params_names),
-        Mutation.Population.random_avoid_best,
         0.3,
         params_types,
         params_names,

@@ -40,7 +40,7 @@ def main(
     best_possible_result=True,
     with_images=False,
 ):
-    algos_params_types, algos_str_domains, map_params_domains = read_algos_params()
+    algos_params_types, algos_str_domains, map_params_domains = read_algos_params(is_eval=True)
 
     algos_functions = {
         "dbscan": skc.DBSCAN,
@@ -57,7 +57,7 @@ def main(
 
     cur_ga_params, best_params = parse_parameters(best_params_str, params_types)
 
-    # изменить для семантик (добавить флаг, читать вмсте с изображениями или нет)
+    # изменить для семантик (добавить флаг, читать вместе с изображениями или нет)
     list_main, list_sub = create_data_lists(
         path_to_lidar,
         path_to_labels,
@@ -81,7 +81,7 @@ def main(
             pcds_labeled_outliers,
             pcds_inliers,
             inliers_indx,
-        ) = plane_segmentation(gt_labeled_pcds, if_eval=True)
+        ) = plane_segmentation(gt_labeled_pcds, is_eval=True)
     else:
         map_label_color: Dict[int, npt.NDArray] = {}
         gt_labeled_pcds, necessary_labels = extract_sem_kitti_pcds_labeled(
@@ -91,13 +91,13 @@ def main(
             pcds_labeled_outliers,
             pcds_inliers,
             inliers_indx,
-        ) = plane_segmentation(gt_labeled_pcds, if_eval=True)
+        ) = plane_segmentation(gt_labeled_pcds, is_eval=True)
         # getting pcds without road, road, above road area and road points indices
     IoU_algo = []
     IoU_gt = []
 
     best_params_dict = dict(zip(params_names, best_params))
-    algos_params_types, string_params, map_params_domains = loader.read_algos_params()
+    algos_params_types, string_params, map_params_domains = loader.read_algos_params(is_eval=True)
 
     possible_str_params = None
     if clusterisation_method in string_params:

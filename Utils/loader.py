@@ -13,8 +13,12 @@ import yaml
 import open3d as o3d
 
 
-def read_algos_params():
-    with open("../config.yaml", "r") as stream:
+def read_algos_params(is_eval=False):
+    if is_eval:
+        path = "../config.yaml"
+    else:
+        path = "./config.yaml"
+    with open(path, "r") as stream:
         try:
             data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
@@ -25,8 +29,12 @@ def read_algos_params():
     return map_algo_params, map_algo_str_params, map_algo_numeric_params
 
 
-def read_labels_info():
-    with open("../config.yaml", "r") as stream:
+def read_labels_info(is_eval=False):
+    if is_eval:
+        path = "../config.yaml"
+    else:
+        path = "./config.yaml"
+    with open(path, "r") as stream:
         try:
             data = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
