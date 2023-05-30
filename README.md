@@ -1,7 +1,7 @@
 # ADAS hyperparameter tuning with GA
 
 A project for hyperparameter selection with usage of Genetic Algorithm.
-All data in point cloud format is taken from[A2D2 dataset](https://www.a2d2.audi/a2d2/en.html).
+All data in point cloud format is taken from [A2D2 dataset](https://www.a2d2.audi/a2d2/en.html).
 An aim of the solution is to automatize and optimize hyperparameter tuning of various classification algorithms, which is done manually nowadays.
 Genetic Algorithm was chosen for the project as a new and perspective way for optimization without ground truth data.
 [EasyGA](https://github.com/danielwilczak101/EasyGA) library is used for Genetic algorithm implementation,

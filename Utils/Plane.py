@@ -2,7 +2,6 @@ import numpy as np
 
 
 class Plane:
-
     @staticmethod
     def get_equation(points):
         c = np.mean(points, axis=0)
@@ -15,4 +14,3 @@ class Plane:
         normal = int(np.sign(d)) * n
         d *= np.sign(d)
         return np.asarray([normal[0], normal[1], normal[2], d])
-
