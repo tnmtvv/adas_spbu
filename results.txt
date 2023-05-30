@@ -1,9 +1,0 @@
-{"eps": 0.3123645571217719, "min_samples": 9, "algorithm": "auto"}
-{"eps": 0.5602044152977944, "min_samples": 1, "algorithm": "auto"}
-{"eps": 0.21862196136500833, "min_samples": 6, "algorithm": "auto"}
-{"eps": 0.8212079527158194, "min_samples": 1, "algorithm": "auto"}
-{"n_clusters": 45, "max_iter": 298, "n_init": 561}
-{"n_clusters": 41, "max_iter": 110, "n_init": 951}
-{"n_clusters": 20, "max_iter": 216, "n_init": 230}
-{"n_clusters": 25, "max_iter": 377, "n_init": 512}
-{"n_clusters": 21, "max_iter": 221, "n_init": 492}

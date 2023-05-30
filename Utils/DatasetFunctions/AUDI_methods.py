@@ -122,11 +122,6 @@ def map_lidar_points_onto_image(
     rows = (lidar["row"] + 0.5).astype(np.int)
     cols = (lidar["col"] + 0.5).astype(np.int)
 
-    # lowest distance values to be accounted for in colour code
-    MIN_DISTANCE = np.min(lidar["distance"])
-    # largest distance values to be accounted for in colour code
-    MAX_DISTANCE = np.max(lidar["distance"])
-
     # get distances
     distances = lidar["distance"]
     # determine point colours from distance

@@ -1,14 +1,21 @@
-from typing import List, Set, Callable, Dict
-
-import numpy as np
+import multiprocessing
 import random
+from typing import List, Set, Callable
+
+# import fast_hdbscan
+import numpy as np
+import open3d
 from EasyGA import GA
 from EasyGA.crossover import Crossover
-from EasyGA.mutation import Mutation
+from cdbw import CDbw
+from sklearn import metrics
+from multiprocessing import Pool
 
 from Eval import IoU
 from Eval.LabeledPcd import LabeledPcd
 from Utils.pcdUtils import *
+
+# from ClustersFeatures import *
 
 
 class GAToCheck(GA):
@@ -24,20 +31,21 @@ class GAToCheck(GA):
         clusterisation_method: Callable,
         pcds_cropped_outliers: List[LabeledPcd],
         necessary_labels: Set[int],
-        possible_string_params=None,
+        possible_string_params=None
+
     ):
         GA.__init__(self)
-        self.pcds_cropped_outliers = (list(pcds_cropped_outliers),)
+        self.pcds_cropped_outliers = list(pcds_cropped_outliers),
         self.pcds_cropped_outliers = list(self.pcds_cropped_outliers)[0]
         self.generation_goal = num_generation
         self.population_size = num_population
         self.num_of_shots = num_of_shots
         self.fitness_function_impl = self.fitness_function
         self.map_params_fitness = {}
-        self.necessary_labels = (necessary_labels,)
-        self.necessary_labels = list(self.necessary_labels)[0]
+        self.necessary_labels = necessary_labels,
+        self.necessary_labels= list(self.necessary_labels)[0]
         self.clusterisation_method = clusterisation_method
-        self.chromosome_length = chromosome_length  # number of parameters to optimize
+        self.chromosome_length = chromosome_length # number of parameters to optimize
         self.params_names = params_names
         self.params_types = params_types
         self.possible_str_params = possible_string_params
@@ -63,20 +71,15 @@ class GAToCheck(GA):
 
                 clusterer.set_params(**params_dict)
                 raw_labels = clusterer.fit_predict(points)
+                num_of_clusters = len(set(raw_labels))
                 self.target_fitness_type = "max"
                 cur_map = {}
                 cloud.raw_labels = raw_labels
                 if not self.necessary_labels:
-                    flatten_indices_of_interest = IoU.extract_necessary_indices(
-                        cloud, set(cloud.gt_labels)
-                    )
+                    flatten_indices_of_interest = IoU.extract_necessary_indices(cloud, set(cloud.gt_labels))
                 else:
-                    flatten_indices_of_interest = IoU.extract_necessary_indices(
-                        cloud, self.necessary_labels
-                    )
-                fitness, _ = IoU.evaluate_IoU(
-                    cloud, cur_map, flatten_indices_of_interest
-                )
+                    flatten_indices_of_interest = IoU.extract_necessary_indices(cloud, self.necessary_labels)
+                fitness, _ = IoU.evaluate_IoU(cloud, cur_map, flatten_indices_of_interest)
                 scores.append(fitness)
             fitness_value = np.mean(scores)
             self.map_params_fitness[chrom_str] = fitness_value
@@ -86,23 +89,21 @@ class GAToCheck(GA):
         list_of_genes = []
         for i, param in enumerate(self.params_types):
             cur_list = []
-            if param == "int":
+            if param == 'int':
                 cur_list = [random.randint(2, 100) for _ in range(self.population_size)]
-            elif param == "float":
+            elif param == 'float':
                 cur_list = [random.uniform(0.1, 1) for _ in range(self.population_size)]
-            elif param == "str":
+            elif param == 'str':
                 param_name = self.params_names[i]
                 possible_values = self.possible_str_params[param_name]
-                cur_list = [
-                    possible_values[random.randint(0, len(possible_values) - 1)]
-                    for _ in range(self.population_size)
-                ]
+                cur_list = [possible_values[random.randint(0, len(possible_values) - 1)] for _ in range(self.population_size)]
             list_of_genes.append(cur_list)
         if len(list_of_genes) > 1:
             cur_res = list_of_genes[0]
             for cur_param_list in list_of_genes[1:]:
                 cur_res = list(zip(cur_res, cur_param_list))
                 cur_res = list(map(lambda x: list(x), cur_res))
+
             cur_res = list(map(lambda x: to_list(x)[0], cur_res))
         else:
             cur_res = list_of_genes[0]
@@ -111,9 +112,9 @@ class GAToCheck(GA):
     def my_chromosome_impl(self):
         chromosome_data = []
         for i, param in enumerate(self.params_types):
-            if param == "int":
+            if param == 'int':
                 cur_param = random.randint(1, 100)
-            elif param == "float":
+            elif param == 'float':
                 cur_param = random.uniform(0.1, 1)
             else:
                 param_name = self.params_names[i]
@@ -123,7 +124,7 @@ class GAToCheck(GA):
         return chromosome_data
 
     def ga_run(self, verbose):
-        self.target_fitness_type = "max"
+        self.target_fitness_type = 'max'
         while self.active():
             self.evolve(1)
             if verbose:

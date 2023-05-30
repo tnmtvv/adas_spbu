@@ -120,7 +120,7 @@ def extract_sem_kitti_pcds_labeled(
 ):
     gt_labeled_pcds = []
 
-    map_sem_color, necessary_labels = read_labels_info()
+    map_sem_color, necessary_labels = read_labels_info(is_eval=True)
 
     if len(bin_list) == len(label_list):
         for i, bin_file in enumerate(bin_list):
@@ -156,7 +156,7 @@ def extract_sem_kitti_pcds_labeled(
             else:
                 for i, label in enumerate(set(cur_true_labels)):
                     if label not in map_label_color.keys():
-                        map_label_color[label] = MyUtils.align_color(label, set_colors)
+                        map_label_color[label] = pcdUtils.align_color(label, set_colors)
                     cur_indices = np.where(cur_true_labels == label)[0].tolist()
                     if cur_indices:
                         cropped_indices = np.ma.intersect1d(indices, cur_indices)
