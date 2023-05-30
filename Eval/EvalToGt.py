@@ -1,5 +1,6 @@
 from typing import List, Set, Callable, Dict
 
+import numpy as np
 from EasyGA import GA
 from EasyGA.crossover import Crossover
 from EasyGA.mutation import Mutation

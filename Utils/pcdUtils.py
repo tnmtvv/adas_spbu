@@ -2,7 +2,11 @@ import random
 
 import numpy as np
 import open3d as o3d
+import sklearn
+from EasyGA.crossover import Crossover
+from EasyGA.mutation import Mutation
 from matplotlib import pyplot as plt
+from numpy import double
 
 from Utils.Plane import Plane
 
@@ -147,7 +151,6 @@ def paint_cloud(cloud, raw_labels):
     for label in set(raw_labels):
         cur_color = align_color(label, one_more_set)
         cur_indices = np.where(raw_labels == label)[0].tolist()
-        # label_indices_of_interest = list(set(cur_indices).intersection(set(flatten_indices_of_interest)))
         colors_cloud_raw[cur_indices] = cur_color
     cloud.colors = o3d.utility.Vector3dVector(colors_cloud_raw)
     return cloud
