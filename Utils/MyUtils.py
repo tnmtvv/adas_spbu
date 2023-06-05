@@ -73,16 +73,7 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
     min_z_point = find_min_z(points)
     plane_point_indices = np.where(np.abs(points[:, -1] - min_z_point) < 0.25)
     plane_points = points[plane_point_indices]
-    #
-    # pcd = cur_pcd.select_by_index(plane_point_indices[0])
-    # o3d.visualization.draw_geometries([cur_pcd])
-    # o3d.visualization.draw_geometries([pcd])
-
-    # build plane equation of the extracted points
     plane_equation = Plane.get_equation(plane_points)
-    # svd = np.linalg.svd(points.T - np.mean(points.T, axis=1, keepdims=True))
-    # left = svd[0]
-    # normal_vector = left[:, -1]
 
     normal_vector = plane_equation[:-1]
     c = np.mean(plane_points, axis=0)
@@ -90,11 +81,9 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
 
     # get all the points that satisfy the equation
     second_plane_point_indices = np.where(np.abs(np.asarray(points).dot(normal_vector) - d) <= 0.4)[0]
-    # _, second_plane_point_indices = cur_pcd.segment_plane(distance_threshold=0.1, ransac_n=3, num_iterations=1000)
     inlier_cloud = cur_pcd.select_by_index(second_plane_point_indices)
     cur_pcd = cur_pcd.select_by_index(second_plane_point_indices, invert=True)
     if if_eval:
-        # true_pcd.pcd = true_pcd.pcd.select_by_index(second_plane_point_indices, invert=True)
         all_gt = range(0, len(true_pcd.gt_labels))
         all_sem = range(0, len(true_pcd.sem_labels))
         true_pcd.gt_labels = true_pcd.gt_labels[list(set(all_gt).difference(set(second_plane_point_indices)))]
@@ -118,9 +107,6 @@ def two_stage_plane_segmentation(true_pcd, down_sample_coeff=1, if_eval=False):
         true_pcd.gt_colors = true_pcd.pcd.colors
         true_pcd.sem_labels = true_pcd.sem_labels[cropped_outlier_indices]
         true_pcd.unique_sem_labels = set(true_pcd.sem_labels)
-
-    # o3d.visualization.draw_geometries([inlier_cloud])
-    # o3d.visualization.draw_geometries([pcd])
 
     return cur_pcd, inlier_cloud, second_plane_point_indices
 

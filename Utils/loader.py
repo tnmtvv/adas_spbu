@@ -116,7 +116,7 @@ def build_audi_labeled_pcds(gt_pcds):
 
 
 def extract_sem_kitti_pcds_labeled(
-    bin_list, label_list, dict_label_color, get_AoF: Callable = None
+    bin_list, label_list, dict_label_color, get_AoF: Callable
 ):
     gt_labeled_pcds = []
 
@@ -176,7 +176,6 @@ def extract_sem_kitti_pcds_labeled(
                     true_colors=cur_colors,
                 )
             )
-        # o3d.visualization.draw_geometries([gt_labeled_pcds[0].pcd])
     return gt_labeled_pcds, necessary_labels
 
 
