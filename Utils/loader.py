@@ -80,7 +80,7 @@ def build_point_clouds_and_lidars(lidar_list, num_shots, image_list=None):
 
 
 # adopted from https://github.com/PRBonn/semantic-kitti-api/blob/master/auxiliary/laserscan.py
-def extract_sem_kitti_pcds(bin_list, label_list, get_AoF: Callable = None):
+def extract_sem_kitti_pcds(bin_list, label_list, get_AoF: Callable):
     gt_pcds = []
 
     if len(bin_list) == len(label_list):

@@ -1,15 +1,12 @@
-import random
-
-import numpy as np
-import open3d as o3d
-import sklearn
 from EasyGA.crossover import Crossover
 from EasyGA.mutation import Mutation
+from Utils.Plane import Plane
 from matplotlib import pyplot as plt
 from numpy import double
-
-from Utils.Plane import Plane
-
+import numpy as np
+import open3d as o3d
+import random
+import sklearn
 
 def align_color(label, set_colors):
     if label < 0:
