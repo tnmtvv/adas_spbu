@@ -1,12 +1,9 @@
-from EasyGA.crossover import Crossover
-from EasyGA.mutation import Mutation
 from Utils.Plane import Plane
 from matplotlib import pyplot as plt
-from numpy import double
 import numpy as np
 import open3d as o3d
 import random
-import sklearn
+
 
 def align_color(label, set_colors):
     if label < 0:
@@ -39,9 +36,6 @@ def find_min_z(points):
     while len(layer) < 1000:
         layer = list(filter(lambda x: np.abs(x[2] - cur_min_z[-1]) < 0.7 + eps, points))
         eps += 0.25
-    # pcd = o3d.geometry.PointCloud()
-    # pcd.points = o3d.utility.Vector3dVector(layer)
-    # o3d.visualization.draw_geometries([pcd])
     layer = np.asarray(layer)[:, 2]
     z_to_return = np.mean(layer)
     return z_to_return

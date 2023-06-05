@@ -7,7 +7,7 @@ import numpy as np
 from Eval.LabeledPcd import LabeledPcd
 from Utils import pcdUtils
 from Utils.DatasetFunctions import SemanticKitti_methods
-from Utils.DatasetFunctions.AUDI_methods import *
+from Utils.DatasetFunctions.AUDI_methods import create_open3d_pc, undistort_image
 import re
 import yaml
 import open3d as o3d
@@ -134,11 +134,10 @@ def extract_sem_kitti_pcds_labeled(
             indices = []
             set_colors = set()
 
-            if get_AoF:
-                # getting above-road area
-                indices = get_AoF(cur_pcd)
-                cur_pcd = cur_pcd.select_by_index(indices=indices)
-                cur_sem_labels = cur_sem_labels[indices]
+            # getting above-road area
+            indices = get_AoF(cur_pcd)
+            cur_pcd = cur_pcd.select_by_index(indices=indices)
+            cur_sem_labels = cur_sem_labels[indices]
             for sem_label in set(cur_sem_labels):
                 # cropping semantic colors
                 cur_indices = np.where(cur_sem_labels == sem_label)[0].tolist()
